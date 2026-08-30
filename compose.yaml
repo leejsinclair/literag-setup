@@ -1,0 +1,41 @@
+# Single Compose project: one `lightrag` service running the official published image.
+#
+# ALL configuration comes from ./.env, which is mounted at /app/.env and read by the
+# LightRAG server directly. That mounted file is the SINGLE authoritative configuration
+# surface. Compose also reads the same ./.env for the ${...} interpolation below. Do NOT
+# add an `environment:` block that re-declares keys from .env — a value in two places
+# drifts (data-model.md -> Configuration entity).
+#
+# Networking: host network namespace (research.md Decision 2). The LightRAG process binds
+# ${HOST}:${PORT} itself; with HOST=127.0.0.1 the Web UI and API are loopback-only, and the
+# container reaches the host's Ollama at http://localhost:11434 with no Ollama change.
+# Because host networking publishes nothing, there is deliberately NO `ports:` block.
+
+services:
+  lightrag:
+    image: ghcr.io/hkuds/lightrag:${LIGHTRAG_IMAGE_TAG}
+    container_name: literag
+    network_mode: host
+
+    volumes:
+      - ./data/inputs:/app/data/inputs
+      - ./data/rag_storage:/app/data/rag_storage
+      - ./data/prompts:/app/data/prompts
+      - ./.env:/app/.env:ro
+      # ./data/backups is deliberately NOT mounted (Invariant 4): the container has
+      # no reason to read or write backup archives.
+
+    restart: on-failure
+
+    # Loopback health probe. python3 is always present in the image; ${PORT} is
+    # interpolated from ./.env at `docker compose up` time.
+    healthcheck:
+      test:
+        - CMD-SHELL
+        - >-
+          python3 -c "import sys,urllib.request;
+          sys.exit(0 if urllib.request.urlopen('http://127.0.0.1:${PORT:-9621}/health', timeout=5).status == 200 else 1)"
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 90s

@@ -1,0 +1,23 @@
+# --- Secrets / machine-specific configuration (FR-030, Principle VI) ---
+.env
+
+# --- Knowledge-base data and source documents (never committed) ---
+data/inputs/*
+data/rag_storage/*
+data/prompts/*
+data/backups/*
+
+# Displaced KB state left behind by restore.sh --force
+data/rag_storage.pre-restore-*/
+
+# Keep the directory skeleton tracked
+!data/inputs/.gitkeep
+!data/rag_storage/.gitkeep
+!data/prompts/.gitkeep
+!data/backups/.gitkeep
+
+# --- Editor / OS noise ---
+*.swp
+*~
+.DS_Store
+Thumbs.db
