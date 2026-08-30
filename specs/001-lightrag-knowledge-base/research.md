@@ -378,6 +378,40 @@ executable check rather than a claim (Principle VIII).
   `GET /documents/track_status/{id}` reading `.documents[].status` (lowercase
   `DocStatus` values; `status_summary` keys are `"DocStatus.X"` and unused).
 
+## Post-implementation revision — GPU performance profile (2026-08-30)
+
+A later performance pass found the target box has an **NVIDIA GTX 1660 Ti (6 GB)**
+that Decisions 2–4 had ignored ("CPU only"). Measured findings on that box:
+
+- At `OLLAMA_LLM_NUM_CTX=32768` Ollama's scheduler split `qwen2.5:3b` ~9 % CPU /
+  91 % GPU. The split **stalls the pipeline** — CPU and GPU each idle waiting on
+  the other; utilisation sat at 2–19 %. This is the reported slowness.
+- Forcing full GPU offload (`OLLAMA_LLM_NUM_GPU=99`) at `NUM_CTX=16384`: both
+  `qwen2.5:3b` and `bge-m3` fit together in VRAM (5.0 / 6.1 GB); generation
+  60 → 79 tok/s. Prompt-processing ceiling on this card is ~300 tok/s regardless
+  of `num_batch`, so the **query context budget** (`MAX_TOTAL_TOKENS`, default
+  30000 ≈ 90–110 s of prompt processing) is the dominant query-latency term.
+
+Revisions (all in `.env` / new `ollama/ollama.service`; no re-index, no topology
+change — Principle IX still holds, this is configuration):
+
+- **Decision 2 amendment**: Ollama is now a tuned **systemd user service**
+  (`OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`, `OLLAMA_KEEP_ALIVE=30m`,
+  `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_NUM_PARALLEL=2`). Still `OLLAMA_HOST=
+  127.0.0.1:11434`, still loopback, still unexposed — the exposure model is
+  unchanged.
+- **Decision 3/4 amendment**: `OLLAMA_LLM_NUM_GPU`/`OLLAMA_EMBEDDING_NUM_GPU=99`;
+  `OLLAMA_LLM_NUM_CTX` 32768→16384; `OLLAMA_LLM_NUM_PREDICT` 8192→3072 plus
+  `OLLAMA_LLM_REPEAT_PENALTY=1.3` (loop guard at source); `MAX_ASYNC_LLM`/
+  `MAX_PARALLEL_INSERT` 2/1→4/2; `ENABLE_LLM_CACHE` false→true. Query context
+  trimmed (`MAX_TOTAL_TOKENS=10000`, `TOP_K=20`, `CHUNK_TOP_K=8`, …). Ingestion
+  set to an aggressive-speed profile (`MAX_GLEANING=0`, `CHUNK_SIZE=2000`).
+- SC-012 ("no GPU required") is still satisfiable — restoring the CPU-only `.env`
+  from git history reverts the profile. The GPU is used because it is present and
+  helps, not because the design requires it.
+- Full rationale and the fallback ladder: `docs/MODEL_SELECTION.md` →
+  "Performance tuning". Applied by `scripts/apply-perf-tuning.sh`.
+
 ## Open items to confirm during implementation (not blocking)
 
 - Exact current default value of `LIGHTRAG_PARSER` routing and whether `.txt` needs it set

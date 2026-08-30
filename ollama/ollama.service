@@ -1,0 +1,50 @@
+# LiteRAG — tuned Ollama service (systemd USER unit)
+# =============================================================================
+# Install:
+#   mkdir -p ~/.config/systemd/user
+#   cp ollama/ollama.service ~/.config/systemd/user/ollama.service
+#   # stop any manually-started `ollama serve` first:
+#   pkill -x ollama    # or: kill <pid of 'ollama serve'>
+#   systemctl --user daemon-reload
+#   systemctl --user enable --now ollama
+#   loginctl enable-linger "$USER"   # start at boot without a login (may already be set)
+#
+# Verify:
+#   systemctl --user status ollama
+#   systemctl --user show ollama -p Environment
+#   curl -s http://127.0.0.1:11434/api/version
+#
+# scripts/apply-perf-tuning.sh performs all of the above.
+# =============================================================================
+[Unit]
+Description=Ollama (LiteRAG tuned profile)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+Type=exec
+# Path is the manual install location on this box. Change if `which ollama` differs.
+ExecStart=%h/.local/bin/ollama serve
+Restart=always
+RestartSec=3
+
+# Loopback only — LightRAG reaches it via network_mode: host.
+Environment=OLLAMA_HOST=127.0.0.1:11434
+
+# --- Performance tuning ---------------------------------------------------
+# Flash attention + q8_0 KV cache roughly halve KV-cache VRAM. That headroom is
+# what lets NUM_PARALLEL=2 run alongside both the LLM and the embedding model
+# resident on a 6 GB card.
+Environment=OLLAMA_FLASH_ATTENTION=1
+Environment=OLLAMA_KV_CACHE_TYPE=q8_0
+# Keep models hot between requests (ingest alternates LLM <-> embedding phases).
+Environment=OLLAMA_KEEP_ALIVE=30m
+# qwen2.5:3b (LLM) + bge-m3 (embeddings) stay loaded together.
+Environment=OLLAMA_MAX_LOADED_MODELS=2
+# Concurrent requests served per model. 2 pairs with LightRAG MAX_ASYNC_LLM=4
+# (2 run, 2 queue). Drop to 1 if `ollama ps` ever shows a CPU/GPU split or
+# nvidia-smi hits the 6144 MiB ceiling.
+Environment=OLLAMA_NUM_PARALLEL=2
+
+[Install]
+WantedBy=default.target

@@ -100,6 +100,32 @@ Check free space with `df -h .` before large operations.
 
 ---
 
+## Everything is slow and neither CPU nor GPU looks busy
+
+The model is split across CPU and GPU. Check:
+
+```bash
+ollama ps        # PROCESSOR column
+```
+
+If it shows something like `9%/91% CPU/GPU` (or `100% CPU`), Ollama could not fit
+the model fully on the GPU and the split stalls the pipeline. Fixes, in order:
+
+1. Confirm `OLLAMA_LLM_NUM_GPU=99` and `OLLAMA_EMBEDDING_NUM_GPU=99` are in `.env`,
+   then `./scripts/restart.sh`.
+2. Confirm the tuned Ollama service is active:
+   `systemctl --user show ollama -p Environment` should list
+   `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`. If not, run
+   `./scripts/apply-perf-tuning.sh`.
+3. VRAM ceiling — `nvidia-smi` at/near `6144 MiB` with both models loaded. Lower
+   `OLLAMA_NUM_PARALLEL` to `1` in `~/.config/systemd/user/ollama.service`
+   (`systemctl --user daemon-reload && systemctl --user restart ollama`), or drop
+   `OLLAMA_LLM_NUM_CTX` to `12288` in `.env`. Closing GPU-heavy desktop apps
+   (browsers, Discord) frees ~1–1.5 GB.
+4. Full detail: `docs/MODEL_SELECTION.md` → "Performance tuning".
+
+---
+
 ## A document is stuck in `processing` for many minutes / ingestion times out
 
 Almost always the extraction LLM ran away — a small model looping on LightRAG's
@@ -109,11 +135,13 @@ extraction activity with no "Completed merging" line, and eventually
 
 Fixes (see `docs/MODEL_SELECTION.md` for detail):
 
-1. Make sure `OLLAMA_LLM_NUM_PREDICT` is set in `.env` (default `8192`). This is
-   the guard against runaway generation; without it a stuck call runs until
-   `LLM_TIMEOUT`.
-2. Lower `OLLAMA_LLM_NUM_PREDICT` to `4096`.
-3. Switch `LLM_MODEL` to `llama3.2:3b`, or to a 7B–8B model for reliability.
+1. Make sure `OLLAMA_LLM_REPEAT_PENALTY` (`1.3`) and `OLLAMA_LLM_NUM_PREDICT`
+   (`3072`) are set in `.env` — the two guards against runaway generation. Without
+   them a stuck call runs until `LLM_TIMEOUT`.
+2. Lower `OLLAMA_LLM_NUM_PREDICT` to `2048`.
+3. Check `ollama ps` shows `100% GPU` (see the entry above).
+4. Switch `LLM_MODEL` to `llama3.2:3b`, or to a 7B–8B model for reliability
+   (a 7B will spill off a 6 GB card).
 
 After changing `.env`, `./scripts/restart.sh` then re-run `./scripts/ingest.sh`
 (the stuck document resumes; nothing already done is reprocessed).

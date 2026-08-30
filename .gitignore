@@ -1,5 +1,7 @@
 # --- Secrets / machine-specific configuration (FR-030, Principle VI) ---
 .env
+.env.*
+!.env.example
 
 # --- Knowledge-base data and source documents (never committed) ---
 data/inputs/*

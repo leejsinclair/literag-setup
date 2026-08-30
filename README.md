@@ -4,9 +4,10 @@ A personal, single-user knowledge base built on [LightRAG](https://github.com/HK
 It ingests your local documents (`.txt`, `.md`, text-searchable `.pdf`), builds a knowledge
 graph and retrieval index from them, and lets you query that knowledge through the LightRAG
 Web UI and REST API. Everything runs locally: LightRAG in a single Docker Compose service,
-talking to the host's Ollama for a small CPU language model and embedding model. The Web UI
-and API are bound to `127.0.0.1` only — there is **no authentication** and the service must
-not be exposed off the local machine.
+talking to the host's Ollama for a small language model and embedding model. Runs on CPU
+alone; where a GPU is present it is used (see `docs/MODEL_SELECTION.md` → "Performance
+tuning"). The Web UI and API are bound to `127.0.0.1` only — there is **no authentication**
+and the service must not be exposed off the local machine.
 
 This repository *is* the deployment: `compose.yaml`, `.env.example`, `scripts/`, `docs/`.
 
@@ -16,7 +17,8 @@ This repository *is* the deployment: `compose.yaml`, `.env.example`, `scripts/`,
 - Ollama running on the host (`curl -s http://localhost:11434/api/tags`)
 - Models pulled: `ollama pull qwen2.5:3b-instruct` and `ollama pull bge-m3`
 - `curl`, `jq`, `tar` (`pacman -S jq` on EndeavourOS)
-- No GPU required
+- No GPU required. If you have an NVIDIA GPU, run `./scripts/apply-perf-tuning.sh`
+  after setup to install the tuned, GPU-accelerated Ollama service.
 
 Full prerequisite table and first-time setup (target: **under 30 minutes**):
 [`specs/001-lightrag-knowledge-base/quickstart.md`](specs/001-lightrag-knowledge-base/quickstart.md).
@@ -68,7 +70,7 @@ backs up first and restores your pre-test state on exit.
 
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) — components, Docker ↔ Ollama, where data lives, exposure model, scale ceiling, pinned image digest
 - [`docs/OPERATIONS.md`](docs/OPERATIONS.md) — start/stop/ingest/query/backup/restore/update runbooks, recovery, re-index
-- [`docs/MODEL_SELECTION.md`](docs/MODEL_SELECTION.md) — chosen CPU models, changing the query LLM vs the embedding model, the `EMBEDDING_DIM` gotcha
+- [`docs/MODEL_SELECTION.md`](docs/MODEL_SELECTION.md) — chosen models, **performance tuning** (GPU offload, query-latency and ingest knobs), changing the query LLM vs the embedding model, the `EMBEDDING_DIM` gotcha
 - [`docs/TROUBLESHOOTING.md`](docs/TROUBLESHOOTING.md) — Ollama connectivity, model-not-installed, dimension mismatch, disk full, interrupted ingestion, restore-onto-live-KB
 
 ## Design documents

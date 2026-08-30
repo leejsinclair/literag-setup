@@ -24,6 +24,24 @@ prints the last 40 log lines and tells you to run `./scripts/health.sh`.
 `start.sh` is idempotent — running it while the service is already up just
 re-checks health.
 
+### The Ollama service
+
+LightRAG talks to a **host Ollama**, run as a tuned systemd *user* service
+(`ollama/ollama.service` in this repo, installed to
+`~/.config/systemd/user/ollama.service`). It is GPU-accelerated and configured for
+this box — see `docs/MODEL_SELECTION.md` → "Performance tuning".
+
+```bash
+./scripts/apply-perf-tuning.sh          # first-time install / re-apply the tuned profile
+systemctl --user status ollama          # is it up?
+systemctl --user restart ollama         # after editing the unit
+systemctl --user show ollama -p Environment   # confirm the tuning vars are live
+ollama ps                               # both models should read "100% GPU"
+```
+
+After editing `~/.config/systemd/user/ollama.service`, run
+`systemctl --user daemon-reload && systemctl --user restart ollama`.
+
 The service binds `127.0.0.1` only. It is **not** reachable from any other
 machine and has **no authentication** — that loopback binding is the sole access
 control. Do not change `HOST` in `.env` without first reading
@@ -81,6 +99,27 @@ fabricated answer.
 
 The default retrieval mode is `hybrid` (graph + vector). The other modes
 (`naive`, `local`, `global`, `mix`) are selectable in the panel.
+
+### Query speed
+
+The answer LLM must read the entire assembled retrieval context before it writes
+a word, and this GPU processes prompt tokens at ~300/s, so context size drives
+latency. The shipped `.env` already trims the context budget (`MAX_TOTAL_TOKENS`
+and friends — see `docs/MODEL_SELECTION.md` → "Performance tuning"). Beyond that:
+
+- **Use a lighter mode for simple questions.** `local` (entity-centric) and
+  `naive` (pure vector) skip most of the graph work `hybrid`/`mix` do:
+
+  ```bash
+  curl -s -X POST http://127.0.0.1:9621/query \
+    -H 'Content-Type: application/json' \
+    -d '{"query":"<your question>","mode":"local"}' | jq '.response_time, .response'
+  ```
+
+- **Repeated / rephrased questions are near-instant** — `ENABLE_LLM_CACHE=true`
+  serves them from cache.
+- `ollama ps` must show `100% GPU` for both models. A CPU/GPU split roughly
+  triples query time — see `docs/TROUBLESHOOTING.md` → "Everything is slow".
 
 ---
 

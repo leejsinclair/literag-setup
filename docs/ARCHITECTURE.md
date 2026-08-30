@@ -3,7 +3,7 @@
 ## Component overview
 
 ```
-        host: EndeavourOS (Arch), x86_64, CPU only
+        host: EndeavourOS (Arch), x86_64 + NVIDIA GTX 1660 Ti (6 GB)
         ┌───────────────────────────────────────────────────────────────┐
         │                                                               │
         │   Docker Engine + Compose v2                                   │
@@ -29,8 +29,12 @@
 - **One container, one Compose project.** No database, no sidecars, no reverse
   proxy (Principle I, IX). LightRAG itself provides the Web UI, API, graph,
   index and document tracking — this repo only configures and operates it.
-- **Ollama stays on the host**, unbundled and unmodified — it is intentionally
-  shared infrastructure (Principle II).
+- **Ollama stays on the host**, unbundled — it is intentionally shared
+  infrastructure (Principle II). It *is* deliberately configured for this box: a
+  tuned systemd user service (`ollama/ollama.service`) that GPU-accelerates the
+  models. See `docs/MODEL_SELECTION.md` → "Performance tuning". The original
+  "unmodified, CPU-only" stance (research.md Decisions 2–4) was revised after
+  measuring — the split-CPU/GPU default stalled the pipeline.
 - **All configuration is `.env`**, mounted at `/app/.env` and also read by
   Compose for `${...}` interpolation. `compose.yaml` has no `environment:` block.
 
@@ -43,10 +47,10 @@ consequences:
    no Docker port-publishing layer, and the service is loopback-only with nothing
    further to configure (see "Exposure model" below).
 2. `http://localhost:11434` inside the container **is** the host's Ollama. No
-   `extra_hosts`, no `host.docker.internal`, no `OLLAMA_HOST=0.0.0.0` — Ollama
-   keeps its default loopback bind and is never exposed. The bridge-network
-   alternative (and why it is only a fallback) is in `docs/TROUBLESHOOTING.md`
-   and `research.md` Decision 2.
+   `extra_hosts`, no `host.docker.internal`, no `OLLAMA_HOST=0.0.0.0` — the tuned
+   service keeps `OLLAMA_HOST=127.0.0.1:11434` (loopback, never exposed). The
+   bridge-network alternative (and why it is only a fallback) is in
+   `docs/TROUBLESHOOTING.md` and `research.md` Decision 2.
 
 ### Data-location map
 
@@ -76,8 +80,8 @@ How it is enforced:
   A process bound to `127.0.0.1` accepts connections only from the loopback
   interface; packets arriving on the LAN/Wi-Fi interface to that port are
   refused by the kernel.
-- The host's Ollama is reached at `http://localhost:11434` — also loopback, also
-  unexposed. No Ollama reconfiguration is needed.
+- The host's Ollama is reached at `http://localhost:11434` — also loopback
+  (`OLLAMA_HOST=127.0.0.1:11434` in `ollama/ollama.service`), also unexposed.
 
 ### Verify loopback-only reachability
 
@@ -202,7 +206,7 @@ outgrown them — not before (Principle IX) — is any of:
 
 - container startup takes tens of seconds or more because the `.graphml` load
   dominates;
-- query latency is dominated by vector search rather than by the CPU LLM;
+- query latency is dominated by vector search rather than by the LLM;
 - `data/rag_storage/` JSON files reach hundreds of MB and rewrites stutter.
 
 Only then does introducing a graph/vector database (PostgreSQL + pgvector, or

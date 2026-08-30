@@ -50,10 +50,17 @@ checks (nice-to-have, not required).
 (infrastructure repo). No frontend/backend source of our own.
 
 **Performance Goals**: None hard. Interactive single-user query latency acceptable on a
-3B CPU model; ingestion throughput is not optimised. Must complete the core
+3B model; ingestion throughput is not optimised. Must complete the core
 ingest-and-query workflow on CPU (SC-012) and handle several hundred documents without
 changing deployment topology (SC-013). Performance is the lowest-ranked operational
 priority per the spec.
+
+> **Revised 2026-08-30**: a post-implementation tuning pass found the target box has
+> an NVIDIA GTX 1660 Ti (6 GB) and that Ollama's default CPU/GPU split was the cause
+> of slow ingest + query. The stack is now GPU-tuned via `.env` + a systemd user
+> service (`ollama/ollama.service`), applied by `scripts/apply-perf-tuning.sh`. No
+> topology / storage change; CPU-only remains restorable from git history. See
+> `research.md` → "Post-implementation revision" and `docs/MODEL_SELECTION.md`.
 
 **Constraints**:
 - Web UI + API reachable only from `127.0.0.1`; never `0.0.0.0`; never public Internet
