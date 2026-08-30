@@ -397,15 +397,25 @@ change — Principle IX still holds, this is configuration):
 
 - **Decision 2 amendment**: Ollama is now a tuned **systemd user service**
   (`OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`, `OLLAMA_KEEP_ALIVE=30m`,
-  `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_NUM_PARALLEL=2`). Still `OLLAMA_HOST=
+  `OLLAMA_MAX_LOADED_MODELS=2`, `OLLAMA_NUM_PARALLEL=1`). Still `OLLAMA_HOST=
   127.0.0.1:11434`, still loopback, still unexposed — the exposure model is
   unchanged.
 - **Decision 3/4 amendment**: `OLLAMA_LLM_NUM_GPU`/`OLLAMA_EMBEDDING_NUM_GPU=99`;
-  `OLLAMA_LLM_NUM_CTX` 32768→16384; `OLLAMA_LLM_NUM_PREDICT` 8192→3072 plus
-  `OLLAMA_LLM_REPEAT_PENALTY=1.3` (loop guard at source); `MAX_ASYNC_LLM`/
-  `MAX_PARALLEL_INSERT` 2/1→4/2; `ENABLE_LLM_CACHE` false→true. Query context
-  trimmed (`MAX_TOTAL_TOKENS=10000`, `TOP_K=20`, `CHUNK_TOP_K=8`, …). Ingestion
-  set to an aggressive-speed profile (`MAX_GLEANING=0`, `CHUNK_SIZE=2000`).
+  `OLLAMA_LLM_NUM_CTX` 32768→12288; `OLLAMA_EMBEDDING_NUM_CTX` 8192→2048;
+  `OLLAMA_LLM_NUM_PREDICT` 8192→3072 plus `OLLAMA_LLM_REPEAT_PENALTY=1.15` (loop
+  guard at source); `MAX_ASYNC_LLM`/`MAX_PARALLEL_INSERT` 2/1→2/1 (unchanged);
+  `EMBEDDING_BATCH_NUM=10`, `EMBEDDING_TIMEOUT=120`; `ENABLE_LLM_CACHE` false→true.
+  Query context trimmed (`MAX_TOTAL_TOKENS=10000`, `TOP_K=20`, `CHUNK_TOP_K=8`, …).
+  Ingestion set to an aggressive-speed profile (`MAX_GLEANING=0`, `CHUNK_SIZE=2000`).
+- **Follow-up correction (2026-08-31)**: the first cut used `OLLAMA_NUM_PARALLEL=2`
+  and larger contexts. On this 6 GB card that made the LLM and `bge-m3` unable to
+  co-reside: Ollama evicted and reloaded them against each other on every ingest
+  phase switch, and a merge-phase embedding batch queued behind a reload tripped
+  LightRAG's embedding-worker timeout (2× `EMBEDDING_TIMEOUT`), halting the
+  pipeline with *"Embedding func: Worker execution timeout after 60s"*. Fixed by
+  `OLLAMA_NUM_PARALLEL=1` + smaller contexts + `EMBEDDING_BATCH_NUM=10` +
+  `EMBEDDING_TIMEOUT=120`. Verified: both models sit at `100% GPU` together
+  (~4.8 / 6.1 GB), no eviction, ingestion completes.
 - SC-012 ("no GPU required") is still satisfiable — restoring the CPU-only `.env`
   from git history reverts the profile. The GPU is used because it is present and
   helps, not because the design requires it.

@@ -83,14 +83,21 @@ systemctl --user show ollama -p Environment | tr ' ' '\n' | sed 's/^/  /' >&2
 
 # --- 3. warm the models and check GPU placement ------------------------
 log "warming qwen2.5:3b-instruct and bge-m3 (forced full GPU) ..."
-curl -fsS "$API/api/generate" -d '{"model":"qwen2.5:3b-instruct","prompt":"ok","stream":false,"keep_alive":"30m","options":{"num_gpu":99,"num_ctx":16384}}' -o /dev/null
-curl -fsS "$API/api/embed"    -d '{"model":"bge-m3:latest","input":"ok","keep_alive":"30m","options":{"num_gpu":99}}' -o /dev/null
+curl -fsS "$API/api/generate" -d '{"model":"qwen2.5:3b-instruct","prompt":"ok","stream":false,"keep_alive":"30m","options":{"num_gpu":99,"num_ctx":12288}}' -o /dev/null
+curl -fsS "$API/api/embed"    -d '{"model":"bge-m3:latest","input":"ok","keep_alive":"30m","options":{"num_gpu":99,"num_ctx":2048}}' -o /dev/null
 
 ps_out="$("$OLLAMA_BIN" ps)"
 printf '%s\n' "$ps_out" | sed 's/^/  /' >&2
 if printf '%s\n' "$ps_out" | grep -qiE '[0-9]+%/[0-9]+% +CPU/GPU|100% CPU'; then
   warn "a model is NOT fully on the GPU (see PROCESSOR column above)."
-  warn "  → lower OLLAMA_NUM_PARALLEL to 1 in $UNIT_DST, or OLLAMA_LLM_NUM_CTX to 12288 in .env, then re-run."
+  warn "  → lower OLLAMA_LLM_NUM_CTX / OLLAMA_EMBEDDING_NUM_CTX in .env, then re-run."
+fi
+# Both models must stay resident together. If only one is listed after warming
+# both, they are evicting each other — OLLAMA_NUM_PARALLEL must be 1 (it is, in
+# the unit file) and the contexts must be small enough to co-reside.
+if [[ "$(printf '%s\n' "$ps_out" | grep -cE 'qwen2\.5:3b|bge-m3')" -lt 2 ]]; then
+  warn "only one model stayed resident after warming both — they are thrashing."
+  warn "  → check OLLAMA_NUM_PARALLEL=1 in $UNIT_DST and lower the *_NUM_CTX values in .env."
 fi
 vram="$(nvidia-smi --query-gpu=memory.used,memory.total --format=csv,noheader)"
 log "VRAM: $vram"
