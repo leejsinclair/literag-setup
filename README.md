@@ -86,3 +86,9 @@ No authentication · no public exposure · no background file-watcher or
 ingest-on-startup · no external database or sidecar services · no scheduled
 backups/ingestion · no automatic KB deletion when a file leaves `data/inputs/` ·
 no Claude Code / MCP integration (the REST API is preserved as the seam).
+
+## Contributing & license
+
+Use it, fork it, adapt it — this repo is MIT-licensed ([`LICENSE.md`](LICENSE.md)).
+Contributions are welcome within the minimal-by-design scope; see
+[`CONTRIBUTING.md`](CONTRIBUTING.md).
