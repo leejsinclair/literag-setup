@@ -117,12 +117,41 @@ the model fully on the GPU and the split stalls the pipeline. Fixes, in order:
    `systemctl --user show ollama -p Environment` should list
    `OLLAMA_FLASH_ATTENTION=1`, `OLLAMA_KV_CACHE_TYPE=q8_0`. If not, run
    `./scripts/apply-perf-tuning.sh`.
-3. VRAM ceiling — `nvidia-smi` at/near `6144 MiB` with both models loaded. Lower
-   `OLLAMA_NUM_PARALLEL` to `1` in `~/.config/systemd/user/ollama.service`
-   (`systemctl --user daemon-reload && systemctl --user restart ollama`), or drop
-   `OLLAMA_LLM_NUM_CTX` to `12288` in `.env`. Closing GPU-heavy desktop apps
-   (browsers, Discord) frees ~1–1.5 GB.
+3. VRAM ceiling — `nvidia-smi` at/near `6144 MiB` with both models loaded. Confirm
+   `OLLAMA_NUM_PARALLEL=1` in `~/.config/systemd/user/ollama.service` (it **must**
+   be 1 on a 6 GB card — see the next entry), then drop `OLLAMA_LLM_NUM_CTX` /
+   `OLLAMA_EMBEDDING_NUM_CTX` in `.env`. Closing GPU-heavy desktop apps (browsers,
+   Discord) frees ~1–1.5 GB.
 4. Full detail: `docs/MODEL_SELECTION.md` → "Performance tuning".
+
+---
+
+## Ingestion halts: "Embedding func: Worker execution timeout"
+
+`pipeline_status.latest_message` reads *"Pipeline halted on internal storage error
+(… NanoVectorDBStorage[entities]: Embedding func: Worker execution timeout after
+60s)"* and the affected documents flip to `failed`.
+
+A single `bge-m3` batch took longer than LightRAG's embedding-worker ceiling (2×
+`EMBEDDING_TIMEOUT`). On this 6 GB card the cause is **model thrash**: with
+`OLLAMA_NUM_PARALLEL=2` the LLM and the embedding model don't fit together, so
+Ollama evicts and reloads one to serve the other on every ingest phase switch, and
+a merge-phase embedding batch ends up queued behind a full model reload.
+
+```bash
+ollama ps          # during ingest — if only ONE model is ever listed, they're thrashing
+```
+
+Fix:
+
+1. `OLLAMA_NUM_PARALLEL=1` in `~/.config/systemd/user/ollama.service`, then
+   `systemctl --user daemon-reload && systemctl --user restart ollama`. With it at
+   1, `ollama ps` shows **both** models at `100% GPU` (~4.8 GB) and they stay
+   resident.
+2. In `.env`: `EMBEDDING_BATCH_NUM=10`, `OLLAMA_EMBEDDING_NUM_CTX=2048`,
+   `EMBEDDING_TIMEOUT=120` (all already set in the tuned profile).
+3. `./scripts/restart.sh --recreate`, then `./scripts/ingest.sh` — the `failed`
+   documents are re-enqueued automatically.
 
 ---
 
@@ -135,9 +164,10 @@ extraction activity with no "Completed merging" line, and eventually
 
 Fixes (see `docs/MODEL_SELECTION.md` for detail):
 
-1. Make sure `OLLAMA_LLM_REPEAT_PENALTY` (`1.3`) and `OLLAMA_LLM_NUM_PREDICT`
+1. Make sure `OLLAMA_LLM_REPEAT_PENALTY` (`1.15`) and `OLLAMA_LLM_NUM_PREDICT`
    (`3072`) are set in `.env` — the two guards against runaway generation. Without
-   them a stuck call runs until `LLM_TIMEOUT`.
+   them a stuck call runs until `LLM_TIMEOUT`. (Don't push the penalty past ~1.2 —
+   qwen starts dropping fields from the extraction tuples.)
 2. Lower `OLLAMA_LLM_NUM_PREDICT` to `2048`.
 3. Check `ollama ps` shows `100% GPU` (see the entry above).
 4. Switch `LLM_MODEL` to `llama3.2:3b`, or to a 7B–8B model for reliability

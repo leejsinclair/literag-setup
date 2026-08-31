@@ -33,18 +33,20 @@ hand per the header comment in that file):
 | `OLLAMA_KV_CACHE_TYPE` | `q8_0` | Quantised KV cache — the headroom that lets two models + parallel slots fit in 6 GB. |
 | `OLLAMA_KEEP_ALIVE` | `30m` | Ingestion alternates LLM ↔ embedding; keep both hot. |
 | `OLLAMA_MAX_LOADED_MODELS` | `2` | `qwen2.5:3b` + `bge-m3` resident together. |
-| `OLLAMA_NUM_PARALLEL` | `2` | Concurrent requests per model. Drop to `1` on any CPU/GPU split or VRAM-ceiling hit. |
+| `OLLAMA_NUM_PARALLEL` | `1` | **Must be 1 on a 6 GB card.** At `2`, Ollama reserves a second KV slot per model, the LLM + embedding pair no longer fits, and the two models evict-and-reload each other on every ingest phase switch — an embedding batch then waits behind a full reload and trips LightRAG's embedding-worker timeout (2× `EMBEDDING_TIMEOUT`; 60 s at the default `EMBEDDING_TIMEOUT=30`), halting the pipeline. |
 
 ### LightRAG side — `.env`
 
 | Key | Value | Was | Note |
 |-----|-------|-----|------|
 | `OLLAMA_LLM_NUM_GPU` / `OLLAMA_EMBEDDING_NUM_GPU` | `99` | unset | Force **all** layers onto the GPU. Removes the CPU/GPU split. |
-| `OLLAMA_LLM_NUM_CTX` | `16384` | `32768` | Enough for extraction (chunk + prompt, gleaning off) and the trimmed query context. Raise to `24576` + `OLLAMA_NUM_PARALLEL=1` if the server logs extraction-input truncation. |
+| `OLLAMA_LLM_NUM_CTX` | `12288` | `32768` | Covers the trimmed query context (`MAX_TOTAL_TOKENS` 10000 + prompt) and extraction. Largest value at which the LLM and `bge-m3` both stay resident on the 6 GB card. Don't raise without lowering something else. |
+| `OLLAMA_EMBEDDING_NUM_CTX` | `2048` | `8192` | Longest embedded text is a merge summary capped at `SUMMARY_MAX_TOKENS=1000`. The rest was wasted VRAM. |
 | `OLLAMA_LLM_NUM_PREDICT` | `3072` | `8192` | Bounds a runaway extraction call to ~40 s; still ample for an answer. |
-| `OLLAMA_LLM_REPEAT_PENALTY` | `1.3` | `1.1` | Stops the extraction repetition loop at the source. |
-| `MAX_ASYNC_LLM` / `MAX_PARALLEL_INSERT` | `4` / `2` | `2` / `1` | Keep the GPU fed (upstream defaults 4 / 3). |
-| `EMBEDDING_BATCH_NUM` | `32` | `10` | Fewer round-trips to `bge-m3`. |
+| `OLLAMA_LLM_REPEAT_PENALTY` | `1.15` | `1.1` | Nudges qwen out of the extraction repetition loop. `1.3` was too high — it made the model drop fields ("found 4/5 fields on RELATION"). |
+| `MAX_ASYNC_LLM` / `MAX_PARALLEL_INSERT` | `2` / `1` | `4` / `3` (upstream) | Ollama serves 1 request per model (`NUM_PARALLEL=1`); more just deepens the queue. |
+| `EMBEDDING_BATCH_NUM` / `EMBEDDING_FUNC_MAX_ASYNC` | `10` / `2` | `10` / `8` | A 32-text batch of long merge summaries was the exact call that hit the worker timeout. |
+| `EMBEDDING_TIMEOUT` | `120` | `30` | LightRAG kills an embedding batch at 2× this. Raised so a transient slow batch doesn't fail the document. |
 | `ENABLE_LLM_CACHE` | `true` | `false` | Repeated queries / re-ingests skip the model. |
 
 **Query latency** (the answer LLM prompt-processes the whole assembled context first —
