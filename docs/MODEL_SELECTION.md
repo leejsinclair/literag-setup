@@ -33,7 +33,7 @@ hand per the header comment in that file):
 | `OLLAMA_KV_CACHE_TYPE` | `q8_0` | Quantised KV cache — the headroom that lets two models + parallel slots fit in 6 GB. |
 | `OLLAMA_KEEP_ALIVE` | `30m` | Ingestion alternates LLM ↔ embedding; keep both hot. |
 | `OLLAMA_MAX_LOADED_MODELS` | `2` | `qwen2.5:3b` + `bge-m3` resident together. |
-| `OLLAMA_NUM_PARALLEL` | `1` | **Must be 1 on a 6 GB card.** At `2`, Ollama reserves a second KV slot per model, the LLM + embedding pair no longer fits, and the two models evict-and-reload each other on every ingest phase switch — an embedding batch then waits behind a full reload and trips LightRAG's 60 s embedding-worker timeout, halting the pipeline. |
+| `OLLAMA_NUM_PARALLEL` | `1` | **Must be 1 on a 6 GB card.** At `2`, Ollama reserves a second KV slot per model, the LLM + embedding pair no longer fits, and the two models evict-and-reload each other on every ingest phase switch — an embedding batch then waits behind a full reload and trips LightRAG's embedding-worker timeout (2× `EMBEDDING_TIMEOUT`; 60 s at the default `EMBEDDING_TIMEOUT=30`), halting the pipeline. |
 
 ### LightRAG side — `.env`
 

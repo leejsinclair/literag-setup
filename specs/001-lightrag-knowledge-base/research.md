@@ -412,7 +412,8 @@ change — Principle IX still holds, this is configuration):
   co-reside: Ollama evicted and reloaded them against each other on every ingest
   phase switch, and a merge-phase embedding batch queued behind a reload tripped
   LightRAG's embedding-worker timeout (2× `EMBEDDING_TIMEOUT`), halting the
-  pipeline with *"Embedding func: Worker execution timeout after 60s"*. Fixed by
+  pipeline with *"Embedding func: Worker execution timeout after 60s"* (the earlier
+  default `EMBEDDING_TIMEOUT=30`, so 2× = 60 s). Fixed by
   `OLLAMA_NUM_PARALLEL=1` + smaller contexts + `EMBEDDING_BATCH_NUM=10` +
   `EMBEDDING_TIMEOUT=120`. Verified: both models sit at `100% GPU` together
   (~4.8 / 6.1 GB), no eviction, ingestion completes.

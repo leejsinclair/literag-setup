@@ -95,7 +95,7 @@ fi
 # Both models must stay resident together. If only one is listed after warming
 # both, they are evicting each other — OLLAMA_NUM_PARALLEL must be 1 (it is, in
 # the unit file) and the contexts must be small enough to co-reside.
-if [[ "$(printf '%s\n' "$ps_out" | grep -cE 'qwen2\.5:3b|bge-m3')" -lt 2 ]]; then
+if [[ "$(printf '%s\n' "$ps_out" | grep -cE 'qwen2\.5:3b|bge-m3' || true)" -lt 2 ]]; then
   warn "only one model stayed resident after warming both — they are thrashing."
   warn "  → check OLLAMA_NUM_PARALLEL=1 in $UNIT_DST and lower the *_NUM_CTX values in .env."
 fi

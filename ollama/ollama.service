@@ -44,7 +44,8 @@ Environment=OLLAMA_MAX_LOADED_MODELS=2
 # reserves a second KV slot per model, the LLM + embedding pair no longer fits,
 # and the two models evict-and-reload each other on every ingest phase switch —
 # a merge-phase embedding batch then waits behind a full model reload and trips
-# LightRAG's 60 s embedding-worker timeout, halting the pipeline. Verified: at 1,
+# LightRAG's embedding-worker timeout (2x EMBEDDING_TIMEOUT; 60 s at default
+# EMBEDDING_TIMEOUT=30), halting the pipeline. Verified: at 1,
 # both models sit at "100% GPU", ~4.8/6.1 GB, no eviction. Pairs with LightRAG
 # MAX_ASYNC_LLM=2 (1 runs, 1 queues).
 Environment=OLLAMA_NUM_PARALLEL=1

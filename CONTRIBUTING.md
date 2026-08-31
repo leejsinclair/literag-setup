@@ -37,7 +37,7 @@ volume, dependency, or network exposure must state which principle permits it.
 - **Evidence over assumption.** Cite official LightRAG docs (pinned to the image tag)
   for any env var or endpoint — don't invent them.
 - **`.env` and `.env.example` stay byte-identical.** Edit both, then verify with
-  `diff <(grep -v '^#' .env) <(grep -v '^#' .env.example)`. Every `.env` comment
+  `diff .env .env.example`. Every `.env` comment
   must be on its own line (two parsers, one strips inline `#`, one doesn't).
 - **Never re-declare an `.env` key in `compose.yaml`.** `.env` is the single
   configuration surface; `compose.yaml` has no `environment:` block.

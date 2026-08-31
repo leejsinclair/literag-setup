@@ -126,7 +126,7 @@ the model fully on the GPU and the split stalls the pipeline. Fixes, in order:
 
 ---
 
-## Ingestion halts: "Embedding func: Worker execution timeout after 60s"
+## Ingestion halts: "Embedding func: Worker execution timeout"
 
 `pipeline_status.latest_message` reads *"Pipeline halted on internal storage error
 (… NanoVectorDBStorage[entities]: Embedding func: Worker execution timeout after
