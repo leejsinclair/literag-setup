@@ -1,0 +1,148 @@
+{
+  "workflow": "companion",
+  "specName": "Personal knowledge pipeline (`kb-sync`)",
+  "branch": "docs/ollama-setup-instructions",
+  "currentStep": "specify",
+  "status": "specified",
+  "history": [
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-20T23:36:37.988Z"
+    },
+    {
+      "step": "specify",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-20T23:39:11.362Z"
+    }
+  ],
+  "request": "/home/lee/.config/Code/User/globalStorage/alfredoperez.speckit-companion/spec-editor/1795217797962-0jom5mq/spec.md",
+  "telemetryInstanceId": "1960d643-e1d6-4417-805f-bd59c249456e",
+  "expectations": [
+    "OCR for scanned PDFs",
+    "audio and video transcription",
+    "automated NotebookLM output generation (report, podcast, infographic)",
+    "NotebookLM Enterprise API",
+    "replacing human citation checking in the essay workflow",
+    "network exposure beyond loopback"
+  ],
+  "context": [
+    "area: .specify/memory/constitution.md (Principles II, III, V, IX, X need a v1.1.0 amendment)",
+    "area: scripts/ (ingest.sh, backup.sh, common.sh idiom for the kb.sh wrapper)",
+    "area: compose.yaml and .env (single config surface; new one-shot kb-sync service behind a profile, reranker service)",
+    "constraint: LightRAG reached only over its REST API; server unchanged except config",
+    "constraint: data invariant 1 and Principle V: removals need backup, log, and a held-removal safety limit",
+    "constraint: .env and .env.example stay byte-identical; comments on their own lines"
+  ],
+  "coverage": {
+    "FR-001": {
+      "title": "Constitution amended to v1.1.0 and README updated before feature code merges"
+    },
+    "FR-002": {
+      "title": "Sync tool talks to the knowledge base only through its REST API"
+    },
+    "FR-003": {
+      "title": "Sync tool runs containerised and does not start with the server"
+    },
+    "FR-004": {
+      "title": "Config in .env; secrets in an ignored owner-only file, never logged"
+    },
+    "FR-005": {
+      "title": "Item records under data/kb-sync/ included in backup and restore"
+    },
+    "FR-006": {
+      "title": "Pull only configured Drive folders and subfolders"
+    },
+    "FR-007": {
+      "title": "One Markdown store file per item at a stable path with provenance header"
+    },
+    "FR-008": {
+      "title": "One record per item with origin, fingerprint, doc ID, topics, notebook IDs, status"
+    },
+    "FR-009": {
+      "title": "Detect changes and re-process only changed items"
+    },
+    "FR-010": {
+      "title": "Delete-before-replace and upstream-delete removal, each after a backup and logged"
+    },
+    "FR-011": {
+      "title": "Hold removals over a configurable safety limit for confirmation"
+    },
+    "FR-012": {
+      "title": "Export Docs, download PDFs, convert spreadsheets; skip and report media; report failures"
+    },
+    "FR-013": {
+      "title": "Ingest byte-identical files once, recording every folder location"
+    },
+    "FR-014": {
+      "title": "Tag NotebookLM outputs; ingest text outputs, record audio and video only"
+    },
+    "FR-015": {
+      "title": "AppFlowy sign-in, page-tree walk, block-to-Markdown conversion"
+    },
+    "FR-016": {
+      "title": "AppFlowy databases as one table or one file per row"
+    },
+    "FR-017": {
+      "title": "Accept the leesinclair.dev research/ folder as a source"
+    },
+    "FR-018": {
+      "title": "Re-runnable sign-in per cloud source, named on expiry"
+    },
+    "FR-019": {
+      "title": "ask retrieves context only, filters locally, sends only survivors to Claude"
+    },
+    "FR-020": {
+      "title": "Reranker filter preferred, local-model scoring fallback, answer names the filter"
+    },
+    "FR-021": {
+      "title": "Citations as [n] Title (AppFlowy|Drive) link resolved through records"
+    },
+    "FR-022": {
+      "title": "Claude answers only from passages; no survivors means not in the knowledge base"
+    },
+    "FR-023": {
+      "title": "ask supports --local and --no-filter"
+    },
+    "FR-024": {
+      "title": "kb_search and kb_get_source tools for local Claude Code"
+    },
+    "FR-025": {
+      "title": "20-question test set runnable with no filter, reranker, and local scoring"
+    },
+    "FR-026": {
+      "title": "Editable research pack file per topic"
+    },
+    "FR-027": {
+      "title": "Push pack creates notebook, adds sources, records IDs, respects source limit"
+    },
+    "FR-028": {
+      "title": "Review writes a proposal of drops, re-pushes and adds with reasons"
+    },
+    "FR-029": {
+      "title": "Apply only the approved proposal; unsupported drops recorded as pending"
+    },
+    "FR-030": {
+      "title": "Optional Claude web search for candidate adds"
+    },
+    "FR-031": {
+      "title": "Wrapper script in the repo idiom with uniform exit codes"
+    },
+    "FR-032": {
+      "title": "Nightly job with per-source isolation and a run summary"
+    }
+  },
+  "classification": {
+    "projectedFiles": 35,
+    "projectedTasks": 70,
+    "scopeSignal": "larger",
+    "verdict": "oversized"
+  },
+  "intent": "Sync Drive and AppFlowy into a local Markdown store for LightRAG, answer with cited links via a local filter and Claude, and bridge topics to NotebookLM with reviewed pruning",
+  "size": "oversized",
+  "selectedAt": "2026-11-20T23:36:37.988Z"
+}
