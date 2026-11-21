@@ -46,6 +46,7 @@ DEFAULTS = {
     "KB_SYNC_FILTER": "reranker",
     "KB_SYNC_LOCAL_TOP_N": "8",
     "KB_SYNC_REMOVAL_LIMIT": "10",
+    "KB_SYNC_INGEST_TIMEOUT": "43200",
     "KB_SYNC_NOTEBOOKLM_OUTPUT_PATTERN": (
         "(briefing doc|study guide|deep dive|faq|timeline|infographic|"
         "video overview|audio overview)"
@@ -79,6 +80,7 @@ class Config:
     filter: str
     local_top_n: int
     removal_limit: int
+    ingest_timeout: int
     notebooklm_output_pattern: str
     notebooklm_enabled: bool
     notebooklm_scope: str
@@ -104,6 +106,13 @@ def _int(values: dict, key: str) -> int:
         raise ConfigError(key, f"expected a whole number, got {raw!r}") from None
     if n < 0:
         raise ConfigError(key, f"expected a whole number of 0 or more, got {raw!r}")
+    return n
+
+
+def _positive(values: dict, key: str) -> int:
+    n = _int(values, key)
+    if n == 0:
+        raise ConfigError(key, "expected a whole number of 1 or more, got '0'")
     return n
 
 
@@ -159,6 +168,7 @@ def load() -> Config:
         filter=flt,
         local_top_n=_int(values, "KB_SYNC_LOCAL_TOP_N"),
         removal_limit=_int(values, "KB_SYNC_REMOVAL_LIMIT"),
+        ingest_timeout=_positive(values, "KB_SYNC_INGEST_TIMEOUT"),
         notebooklm_output_pattern=values["KB_SYNC_NOTEBOOKLM_OUTPUT_PATTERN"],
         notebooklm_enabled=_bool(values, "KB_SYNC_NOTEBOOKLM_ENABLED"),
         notebooklm_scope=values["KB_SYNC_NOTEBOOKLM_SCOPE"].strip(),

@@ -37,9 +37,10 @@ def _basename(path: str) -> str:
 class LightRAG:
     """Thin client over the LightRAG REST API."""
 
-    def __init__(self, base_url, *, sleep=time.sleep, poll_interval=2.0, timeout=3600):
+    def __init__(self, base_url, *, timeout, sleep=None, poll_interval=2.0):
+        # timeout: seconds a scan or a busy pipeline may run (KB_SYNC_INGEST_TIMEOUT).
         self.base_url = str(base_url).rstrip("/")
-        self._sleep = sleep
+        self._sleep = sleep or time.sleep  # looked up now, so a patched time.sleep applies
         self.poll_interval = poll_interval
         self.timeout = timeout
 

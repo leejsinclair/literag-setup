@@ -147,6 +147,7 @@ def test_load_reads_env_file_and_derives_paths(env):
     assert cfg.filter == "reranker"
     assert cfg.local_top_n == 8
     assert cfg.removal_limit == 10
+    assert cfg.ingest_timeout == 43200
     assert cfg.notebook_source_limit == 50
     assert cfg.review_stale_months == 12
     assert cfg.notebooklm_enabled is False
@@ -170,6 +171,7 @@ def test_optional_keys_take_env_example_defaults(env):
         KB_SYNC_FILTER=None,
         KB_SYNC_LOCAL_TOP_N=None,
         KB_SYNC_REMOVAL_LIMIT=None,
+        KB_SYNC_INGEST_TIMEOUT=None,
         KB_SYNC_NOTEBOOK_SOURCE_LIMIT=None,
         KB_SYNC_REVIEW_STALE_MONTHS=None,
         KB_SYNC_CLAUDE_MODEL=None,
@@ -179,6 +181,7 @@ def test_optional_keys_take_env_example_defaults(env):
     assert cfg.filter == "reranker"
     assert cfg.local_top_n == 8
     assert cfg.removal_limit == 10
+    assert cfg.ingest_timeout == 43200
     assert cfg.notebook_source_limit == 50
     assert cfg.review_stale_months == 12
     assert cfg.claude_model == "claude-sonnet-5-5"
@@ -203,6 +206,8 @@ def test_missing_required_key_raises_config_error_exit_3_naming_key(env, key):
         ("KB_SYNC_LOCAL_TOP_N", "eight"),
         ("KB_SYNC_REMOVAL_LIMIT", "ten"),
         ("KB_SYNC_NOTEBOOK_SOURCE_LIMIT", "1.5"),
+        ("KB_SYNC_INGEST_TIMEOUT", "0"),
+        ("KB_SYNC_INGEST_TIMEOUT", "12h"),
     ],
 )
 def test_invalid_value_raises_config_error_naming_key(env, key, value):

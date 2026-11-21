@@ -216,6 +216,7 @@ Added to `.env` and `.env.example`, byte-identical, each comment on its own line
 | `KB_SYNC_FILTER` | `reranker` | `reranker`, `local` or `none` |
 | `KB_SYNC_LOCAL_TOP_N` | `8` | passages kept by local scoring |
 | `KB_SYNC_REMOVAL_LIMIT` | `10` | removals per run above which all are held |
+| `KB_SYNC_INGEST_TIMEOUT` | `43200` | seconds `ingest` waits for one scan, or for a busy pipeline after a removal; `0` is rejected |
 | `KB_SYNC_NOTEBOOKLM_ENABLED` | `false` | gates NotebookLM scope and commands |
 | `KB_SYNC_NOTEBOOK_SOURCE_LIMIT` | `50` | per-notebook source limit |
 | `KB_SYNC_REVIEW_STALE_MONTHS` | `12` | candidate-drop age in reviews |

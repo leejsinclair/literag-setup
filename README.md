@@ -126,7 +126,12 @@ breakdown live under
 Feature 002, the `kb-sync` knowledge pipeline, is in design under
 [`specs/002-kb-sync-knowledge-pipeline/`](specs/002-kb-sync-knowledge-pipeline/). It syncs
 chosen Google Drive folders and AppFlowy pages into the knowledge base, answers with cited
-links, and pushes research packs to NotebookLM. Nothing from it is built yet.
+links, and pushes research packs to NotebookLM. Drive sync (Story 1) is built and runs
+through `scripts/kb.sh`; its settings are the `KB_SYNC_*` keys in `.env.example`.
+`KB_SYNC_INGEST_TIMEOUT` (seconds, default `43200`, 12 hours) caps how long
+`scripts/kb.sh ingest` waits for LightRAG to finish one scan, or to go idle after a
+removal. Raise it if a large first ingest on this machine stops with "did not finish
+within".
 
 ## What this deliberately does not do
 

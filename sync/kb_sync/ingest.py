@@ -313,7 +313,7 @@ class _Apply:
 def apply(cfg, args) -> int:
     records = Records(cfg.records_dir / "kb-sync.db")
     p = _guard(cfg, records, args)
-    lr = LightRAG(cfg.lightrag_url)
+    lr = LightRAG(cfg.lightrag_url, timeout=cfg.ingest_timeout)
     lr.health()
     backup = Path(args.backup).name if args.backup else None
     run_id = records.start_run("ingest")
