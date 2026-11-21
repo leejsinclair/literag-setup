@@ -13,7 +13,7 @@ except `.env` rerank configuration. Base URL `http://127.0.0.1:${PORT}`, no auth
 |---|---|---|
 | Retrieval: `POST /query` with `mode: "mix"` and `only_need_context: true` | same | R1 |
 | Ingest: `POST /documents/scan` | same | R2 |
-| Removal: `DELETE /documents/{doc_id}` | `DELETE /documents/delete_document` | v1.5.6 has no `/documents/{doc_id}` delete route (plan.md → Spec corrections 1). Spec amendment pending. |
+| Removal: `DELETE /documents/{doc_id}` | `DELETE /documents/delete_document` | v1.5.6 has no `/documents/{doc_id}` delete route (plan.md → Spec corrections 1). Amended into the spec's Verbatim Constraints on 2026-11-21. |
 
 ## Calls
 

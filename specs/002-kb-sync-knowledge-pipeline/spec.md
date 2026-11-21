@@ -16,6 +16,9 @@ It is built in phases, each usable on its own. The stories below follow that ord
 ### Session 2026-11-21
 
 - Q: Which Google Drive access scope does the sync tool use? → A: Read-only access to all of Drive (`drive.readonly`). The tool itself confines reads to the configured folder allow-list (FR-006). The OAuth app is published "In production" without Google verification, so sign-ins do not lapse weekly as they do in testing mode. Phase 0 confirms that an unverified production app avoids the 7-day refresh-token expiry.
+- Q: How are documents removed from, and added to, LightRAG v1.5.6? → A: Checked against the pinned image during planning. Removal is `DELETE /documents/delete_document` with a list of document IDs. Bare `DELETE /documents` clears the whole knowledge base and is never called. `POST /documents/scan` reads only the top level of `data/inputs/`, so each store file is copied to a flat name there before a scan.
+- Q: How long are backups kept? → A: The last 14 archives in `data/backups/`. Older ones are pruned after each successful backup. Store files moved to `.removed/` follow the same rule.
+- Q: What happens if LightRAG does not come back after the pre-removal backup restarts it? → A: Ingest waits for the health check before removing anything. If the server does not return, it stops with exit code 3 and removes nothing.
 
 ## User Scenarios & Testing *(mandatory)*
 
@@ -152,6 +155,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - **Sync interrupted.** A pull or ingest stopped mid-run leaves the store and the record of what came from where consistent; the next run completes the work without duplicates.
 - **Oversized Google Doc.** A doc too large for Drive's export is reported as failed with its size and title. The 9.9 MB "A Primer on Cultivating High-Performing Engineering Teams" is the first test.
 - **Duplicate content.** Byte-identical files are ingested once wherever they appear.
+- **Server does not return after the backup.** The pre-removal backup stops and restarts LightRAG. If the health check fails afterwards, ingest stops before any removal, exits 3, and names `./scripts/start.sh`; the next run starts over from a fresh plan and backup.
 - **Knowledge base server stopped.** Pull still works; ingest, ask and the Claude Code tools fail with a message naming the stopped server and how to start it.
 - **Restore.** After the owner restores a backup, the tool's records match the restored knowledge base, because both are in the same backup.
 - **Answer stage offline.** If Claude cannot be reached, `ask` reports that and suggests `--local`; it never falls back to sending unfiltered context.
@@ -208,6 +212,8 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 
 - **FR-031**: Each command MUST be reachable through a wrapper script in the repository's existing style, with its uniform exit codes, actionable error messages, and progress on stderr.
 - **FR-032**: A nightly job MUST be available that pulls and ingests every configured source, isolates a failure in one source from the others, and writes a run summary of added, replaced, removed, held, skipped and failed items.
+- **FR-033**: After each successful, verified backup, `scripts/backup.sh` MUST keep the 14 most recent archives in `data/backups/` (each `kb-<timestamp>.tar.gz` with its `.manifest`) and prune older ones. It MUST never prune the archive it just wrote, any file not matching that pattern, or an archive written to a directory given with `--output`. The same rule MUST apply to each `data/inputs/<source>/.removed/` folder: keep the 14 most recently moved files and prune older ones. The count MUST be configurable in `.env` (`BACKUP_RETENTION`, default 14), and every pruned file MUST be logged.
+- **FR-034**: When `kb-sync ingest` runs a backup before removals, it MUST wait for the knowledge base's health check to pass before any removal starts. If the server is not healthy within the readiness timeout, it MUST exit with code 3, perform no removal, and name `./scripts/start.sh`.
 
 ### Key Entities
 
@@ -235,6 +241,8 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - **SC-010**: Renewing an expired sign-in takes the owner under 2 minutes with one command.
 - **SC-011**: A topic goes from a research pack to a populated notebook in one command, and its saved report is citable after the next pull and ingest.
 - **SC-012**: A review of a topic with one deleted, one edited and one new matching item proposes all three, each with the correct reason.
+- **SC-013**: After 16 successful backups, `data/backups/` holds exactly the 14 newest archives and their manifests, and no other file in it was touched.
+- **SC-014**: With LightRAG prevented from restarting after the pre-removal backup, `kb.sh ingest` exits 3 and the run log shows zero removals.
 
 ## Assumptions
 
@@ -245,6 +253,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - NotebookLM is used through the consumer API on the owner's personal Google account. Output generation stays manual until Google exposes it. The notebook source limit defaults to 50 (the free plan) until the owner confirms their plan.
 - The consumer NotebookLM API's ability to remove a source is unconfirmed; Story 6 degrades to manual removal until it is.
 - The default removal safety limit is 10 documents per run; above it, removals are held.
+- Backup retention defaults to 14 archives. Pruning old archives is a deliberate owner decision that supersedes feature 001's "does not delete older backups" rule for `backup.sh`.
 - The default answer filter keeps passages at or above a reranker score of 0.6, as LightRAG's example suggests for a weak answering model; the fallback keeps the top 8 passages scored 0 to 3. Both are tuned from the FR-025 test results.
 - The candidate-drop age in reviews defaults to 12 months.
 - The owner's AppFlowy page count and database use are still unknown; both document pages and databases are supported.
@@ -259,12 +268,13 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - Claude Code tools: `kb_search`, `kb_get_source`
 - Citation line: `[n] Title (Drive|AppFlowy|NotebookLM|Web|Research) link`
 - No-answer text: "not in the knowledge base"
-- Locations: tool source `sync/`; records `data/kb-sync/`; store files `data/inputs/<source>/<source_id>.md`; packs `packs/<topic>.yaml`
+- Locations: tool source `sync/`; records `data/kb-sync/`; store files `data/inputs/<source>/<source_id>.md`; staged copies `data/inputs/<source>__<source_id>.md`; removed store files `data/inputs/<source>/.removed/`; packs `packs/<topic>.yaml`
 - Source values: `drive`, `appflowy`, `notebook-output`, `web`, `research`
 - Status values: `active`, `stale`, `removed`
 - Store file front-matter keys: `title`, `source`, `url`, `modified`
 - First corpus Drive folder: Leadership, ID `1qIMoMk98MsRmIJvLsfqo5Pv7f7aKlKRk`
-- Retrieval: `POST /query` with `mode: "mix"` and `only_need_context: true`; removal: `DELETE /documents/{doc_id}`; ingest: `POST /documents/scan`
+- Retrieval: `POST /query` with `mode: "mix"` and `only_need_context: true`; removal: `DELETE /documents/delete_document` with body `{"doc_ids": [...]}`, never bare `DELETE /documents` (it clears the whole knowledge base); ingest: `POST /documents/scan`, which reads only the top level of `data/inputs/`, so store files are copied to flat names first
 - Google Drive scope: `drive.readonly`; OAuth app publishing status "In production" (unverified)
 - Reranker: `BAAI/bge-reranker-v2-m3`, `RERANK_BINDING=cohere`, `MIN_RERANK_SCORE`
-- Constitution version after amendment: v1.1.0
+- Constitution version after amendment: v1.1.0 (v1.1.1 PATCH before Story 6)
+- Backup retention: `BACKUP_RETENTION`, default `14`; archives `data/backups/kb-<timestamp>.tar.gz`

@@ -50,7 +50,8 @@ sync/                              # new: the kb-sync tool (build context)
 │   └── nightly.py                 # per-source isolation, run summary
 └── tests/                         # pytest, run inside the image; fixtures/
 scripts/kb.sh                      # new wrapper (contract: contracts/kb-cli.md)
-scripts/backup.sh, restore.sh      # edit: archive/restore data/kb-sync with the KB
+scripts/backup.sh, restore.sh      # edit: archive/restore data/kb-sync with the KB;
+                                   #   backup.sh prunes to BACKUP_RETENTION (FR-033)
 scripts/health.sh                  # edit: reranker probe when RERANK_BINDING != null
 scripts/lib/common.sh              # edit: shared write_index_stamp, kb-sync defaults
 compose.yaml                       # edit: kb-sync (profile) + reranker services
@@ -78,6 +79,8 @@ kb.sh ingest [--confirm-removals]
  ├─ compose --profile kb-sync run --rm kb-sync ingest --plan
  │     ingest.plan()  → data/kb-sync/plan.json {plan_id, created_at, removals[], stages[], held[]}
  ├─ if plan.removals non-empty:  scripts/backup.sh   → prints archive path
+ │     (stops + restarts LightRAG; prunes archives and .removed/ to BACKUP_RETENTION)
+ ├─ wait_for_health "$READY_TIMEOUT"               → exit 3, nothing removed (FR-034)
  ├─ compose … run --rm kb-sync ingest --apply <plan_id> [--backup <archive name>]
  │     ingest.apply()
  │       ├─ refuse removals unless --backup names an archive newer than plan.created_at
@@ -123,7 +126,7 @@ exceptions, so FR-001 is met before any feature code.
 | II | Containerised Application | `kb-sync`, its MCP server and the reranker all run in Compose. The host gets only two systemd user units that call `scripts/kb.sh`, the same pattern as `ollama/ollama.service`. | PASS |
 | III | Local-First | Every outbound flow goes to a recorded dependency: Drive and AppFlowy reads, NotebookLM on `notebook push` and `review --apply`, Claude on `ask` and `kb_search`. Only the filtered chunks and the question leave. `--local` sends nothing. The nightly job only pulls. The reranker binds 127.0.0.1. See Complexity Tracking for the web checks and FR-030. | PASS, one justified gap |
 | IV | Replaceable AI Models | Claude model, local scoring model (`LLM_MODEL`), reranker model and threshold are all `.env` keys. `answer.py` isolates the Claude call. | PASS |
-| V | Persistent Data Is Sacred | Removals only under the 1.1.0 exception: the plan/backup/apply sequence above, a run-log entry per removal, and held removals over `KB_SYNC_REMOVAL_LIMIT`. `data/kb-sync/` joins every backup and restore. `ingest.sh` stays additive. | PASS |
+| V | Persistent Data Is Sacred | Removals only under the 1.1.0 exception: the plan/backup/apply sequence above, a run-log entry per removal, and held removals over `KB_SYNC_REMOVAL_LIMIT`. No removal starts until LightRAG passes its health check after the backup (FR-034). `data/kb-sync/` joins every backup and restore. `ingest.sh` stays additive. Backup retention is a bounded deletion, see Complexity Tracking. | PASS, one justified item |
 | VI | Reproducibility | `sync/` with pinned deps, a pinned reranker image tag, both systemd units, and `.env.example` keys are committed. Secrets, records, packs and models are gitignored. | PASS |
 | VII | Operational Clarity | One `kb.sh` subcommand per operation, uniform exit codes, an expired sign-in names `kb.sh auth <source>`, a stopped server names `./scripts/start.sh`. `health.sh` probes the reranker. | PASS |
 | VIII | Evidence Over Assumption | LightRAG behaviour was read from the pinned v1.5.6 image (research.md R1-R4). This surfaced two corrections to the spec, listed below. Drive, AppFlowy, NotebookLM and reranker facts still to be verified are named Phase 0 checks with a pass condition. | PASS |
@@ -134,8 +137,8 @@ exceptions, so FR-001 is met before any feature code.
 with `.env.example` ✔ (they currently differ at line 97, and the first task restores byte
 identity); loopback binding ✔.
 
-**Spec corrections found under Principle VIII** (the owner should amend the spec's Verbatim
-Constraints):
+**Spec corrections found under Principle VIII** (amended into the spec's Verbatim
+Constraints and Clarifications on 2026-11-21):
 
 1. **Removal route.** v1.5.6 has no `DELETE /documents/{doc_id}`. It removes documents
    with `DELETE /documents/delete_document` and the body `{"doc_ids": [...]}`. Bare
@@ -157,4 +160,5 @@ beyond the table above. Two new bind mounts are `data/kb-sync` (records) and `da
 | Violation | Why needed | Simpler alternative rejected |
 |---|---|---|
 | Outbound flows not in the v1.1.0 table: the review fetches public web URLs the owner listed (Story 6), and FR-030 sends a topic name to Claude's web search. | Both are spec requirements (FR-028, FR-030). Neither sends knowledge-base content. | Silently reading the Claude row as covering it. Instead, add a PATCH amendment (v1.1.1) recording both rows before Story 6 is built. FR-030 stays opt-in behind a flag. |
+| `backup.sh` prunes archives beyond the newest 14, and `.removed/` store files likewise (FR-033). Feature 001's backup contract says it "does not delete older backups". | Owner decision on 2026-11-21: unbounded archives fill the disk, and each holds a full copy of `data/rag_storage/`. | Manual pruning, which the owner rejected. The deletion is bounded: it runs only after the new archive verifies, matches only `kb-<timestamp>.tar.gz` and its `.manifest` in the default `data/backups/`, never touches the archive just written, `data/rag_storage/` or `--output` directories, and logs every file. 001's contract gets a pointer to FR-033. |
 | Feature 001's Invariant 2 ("only restore.sh can displace KB content") is contradicted by FR-010. | The constitution exception exists, but 001's data model was not updated with it. | Leaving two binding documents in conflict. 002's data model states the amended invariant, and 001's data model gets a pointer to it. |

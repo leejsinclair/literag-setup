@@ -127,7 +127,7 @@ its LightRAG document, its topics and its notebook sources (FR-008).
 | Writer | `pull` only. It is written atomically (temp file, then rename), and only when the fingerprint or front-matter changes |
 | PDFs (open decision) [new] | FR-007 requires Markdown, but the plan adds no PDF text extractor, and R8 downloads PDFs whole for LightRAG to parse. Proposed: keep the PDF at `data/inputs/<source>/<source_id>.pdf` and put its provenance in the Item record only. Then the scanned-PDF failure comes from LightRAG, and notebook push can upload the original PDF (FR-027). The alternative is a `pypdf` dependency that extracts text into a `.md`. **Owner decision needed before Story 1 tasks** |
 | Never scanned directly | `POST /documents/scan` reads only the top level of `data/inputs/` [R2], so store files in subfolders are invisible to LightRAG |
-| Removal | When an item becomes `removed`, its store file is moved to `data/inputs/<source>/.removed/<source_id>.<ext>` [new], not deleted. This keeps Principle V for inputs, and the original stays recoverable until the owner prunes it |
+| Removal | When an item becomes `removed`, its store file is moved to `data/inputs/<source>/.removed/<source_id>.<ext>` [new], not deleted. This keeps Principle V for inputs. Each `.removed/` folder keeps the 14 most recently moved files (`BACKUP_RETENTION`), and `backup.sh` prunes older ones after each successful backup (FR-033) |
 
 ## Entity: Staged copy
 

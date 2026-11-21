@@ -83,10 +83,13 @@ Owner form: `scripts/kb.sh ingest [--confirm-removals]`.
 - **Host sequence** (plan.md → Calls; FR-010, SC-008):
   1. `kb-sync ingest --plan` writes `data/kb-sync/plan.json`.
   2. If the plan holds any removal, the host runs `scripts/backup.sh` and captures the
-     archive name it prints.
-  3. `kb-sync ingest --apply <plan_id> [--backup <archive name>]` performs removals, then
+     archive name it prints. `backup.sh` stops and restarts LightRAG.
+  3. The host runs `wait_for_health "$READY_TIMEOUT"`. If LightRAG is not healthy in time:
+     `ERROR: LightRAG did not come back after the backup <archive name>. Nothing was removed. Start it with ./scripts/start.sh and re-run scripts/kb.sh ingest`, exit `3`,
+     and `--apply` is never invoked (FR-034). The plan is discarded; the next run builds a new plan and takes a new backup.
+  4. `kb-sync ingest --apply <plan_id> [--backup <archive name>]` performs removals, then
      stages and scans.
-  4. The host writes the index stamp `data/rag_storage/.literag-index.json`, shared with
+  5. The host writes the index stamp `data/rag_storage/.literag-index.json`, shared with
      `ingest.sh`.
 - **Internal subcommands** (container only; not for the owner):
   - `kb-sync ingest --plan` → stdout: the `plan_id`.
@@ -102,8 +105,8 @@ Owner form: `scripts/kb.sh ingest [--confirm-removals]`.
   added=3 replaced=1 removed=0 held=0 skipped=2 failed=1 backup=<archive name|none>
   ```
 
-- **Exit**: `0` done; `1` any document failed in LightRAG; `3` server stopped; `4` any
-  removal held.
+- **Exit**: `0` done; `1` any document failed in LightRAG; `3` server stopped before the run,
+  or not healthy after the pre-removal backup (no removal performed); `4` any removal held.
 
 ### `kb-sync ask "question"`
 
@@ -184,6 +187,19 @@ These have no spec identifier; they serve FR-024, FR-025 and FR-032.
 | `scripts/kb.sh mcp` | `exec compose --profile kb-sync run --rm -T kb-sync mcp`; prints nothing to stdout first (stdout carries MCP). See [mcp-tools.md](./mcp-tools.md). | as the server |
 | `scripts/kb.sh nightly` | `pull`, then the full `ingest` host sequence, each source isolated; writes the run summary (FR-032). Never pushes to NotebookLM or calls Claude. | `0`; `1` any failure; `4` removals held (`SuccessExitStatus=4` in the unit) |
 | `scripts/kb.sh eval [--filter none\|reranker\|local\|all]` | runs the FR-025 test set; per question prints `<id> <filter> evidence=kept\|lost`, then `kept=<n>/<total>` per filter. | `0`; `3` server stopped |
+
+### Change to `scripts/backup.sh` (FR-033)
+
+After the archive and manifest verify, and only when `--output` was not given, `backup.sh`
+prunes to `BACKUP_RETENTION` (default `14`):
+
+- `data/backups/`: keep the newest N `kb-<timestamp>.tar.gz` files by the timestamp in the
+  name, delete older ones together with their `.manifest`. Any other file is untouched.
+- Each `data/inputs/<source>/.removed/`: keep the newest N files by mtime, delete older ones.
+- Each deletion is logged to stderr as `pruned <path>`. stdout stays the archive path only.
+- A failed or unverified backup prunes nothing. The archive just written is never a candidate.
+- `BACKUP_RETENTION` must be an integer of at least 1, else exit `2`. It joins the script
+  section of `.env` with a default in `load_env`.
 
 ## Configuration keys (`.env`, FR-004)
 
