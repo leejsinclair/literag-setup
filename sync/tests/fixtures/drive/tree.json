@@ -1,0 +1,32 @@
+{
+  "_comment": "Drive v3 file resources (fields id,name,mimeType,parents,trashed,md5Checksum,size,modifiedTime,webViewLink) for the fake Leadership corpus. Synthesized from the shapes in Google's Drive v3 reference, not recorded from a live account. Keys starting with _ are fake-only: _content names a fixture served for alt=media, _export maps export MIME types to fixtures or an error fixture, _workbook names a workbook in workbooks.json.",
+  "files": [
+    {"id": "lead", "name": "Leadership", "mimeType": "application/vnd.google-apps.folder", "parents": ["root"]},
+    {"id": "hiring", "name": "Hiring", "mimeType": "application/vnd.google-apps.folder", "parents": ["lead"]},
+    {"id": "deep", "name": "Archive", "mimeType": "application/vnd.google-apps.folder", "parents": ["hiring"]},
+    {"id": "personal", "name": "Personal", "mimeType": "application/vnd.google-apps.folder", "parents": ["root"]},
+
+    {"id": "doc1", "name": "Team topologies notes", "mimeType": "application/vnd.google-apps.document", "parents": ["lead"], "size": "2048",
+     "_export": {"text/markdown": "doc1.md", "text/plain": "doc1.txt"}},
+    {"id": "doc2", "name": "Hiring rubric", "mimeType": "application/vnd.google-apps.document", "parents": ["hiring"], "size": "1024",
+     "_export": {"text/markdown": "error:badRequest", "text/plain": "doc2.txt"}},
+    {"id": "bigdoc", "name": "A Primer on Cultivating High-Performing Engineering Teams", "mimeType": "application/vnd.google-apps.document", "parents": ["lead"], "size": "10380902",
+     "_export": {"text/markdown": "error:exportSizeLimitExceeded", "text/plain": "error:exportSizeLimitExceeded"}},
+    {"id": "pdf1", "name": "Onboarding checklist.pdf", "mimeType": "application/pdf", "parents": ["hiring"], "_content": "onboarding.pdf"},
+    {"id": "pdf1copy", "name": "Onboarding checklist (copy).pdf", "mimeType": "application/pdf", "parents": ["deep"], "_content": "onboarding.pdf"},
+    {"id": "scan1", "name": "Signed offer letter scan.pdf", "mimeType": "application/pdf", "parents": ["hiring"], "_content": "scanned.pdf"},
+    {"id": "sheet1", "name": "Headcount plan", "mimeType": "application/vnd.google-apps.spreadsheet", "parents": ["lead"], "size": "4096",
+     "_workbook": "headcount"},
+    {"id": "xlsx1", "name": "Budget 2026.xlsx", "mimeType": "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "parents": ["hiring"],
+     "_workbook": "budget"},
+    {"id": "txt1", "name": "Reading list.txt", "mimeType": "text/plain", "parents": ["deep"], "_content": "reading-list.txt"},
+    {"id": "audio1", "name": "Standup recording.m4a", "mimeType": "audio/mp4", "parents": ["lead"], "_content": "media.bin"},
+    {"id": "video1", "name": "All hands.mp4", "mimeType": "video/mp4", "parents": ["lead"], "_content": "media.bin"},
+    {"id": "image1", "name": "Org chart.png", "mimeType": "image/png", "parents": ["hiring"], "_content": "media.bin"},
+    {"id": "nbtext", "name": "Leadership Briefing Doc", "mimeType": "application/vnd.google-apps.document", "parents": ["lead"], "size": "1500",
+     "_export": {"text/markdown": "briefing.md"}},
+    {"id": "nbaudio", "name": "Leadership Audio Overview.wav", "mimeType": "audio/wav", "parents": ["lead"], "_content": "media.bin"},
+    {"id": "secret1", "name": "Private diary", "mimeType": "application/vnd.google-apps.document", "parents": ["personal"], "size": "512",
+     "_export": {"text/markdown": "diary.md"}}
+  ]
+}

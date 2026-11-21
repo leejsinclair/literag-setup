@@ -1,0 +1,10 @@
+{
+  "_comment": "Workbooks the fake serves as xlsx (Sheets export or alt=media). Each sheet is a list of rows; the first row is the header.",
+  "headcount": {
+    "Engineering": [["Team", "Headcount", "Lead"], ["Bluebird", 6, "Ana"], ["Kestrel", 4, "Raj | interim"]],
+    "Design": [["Team", "Headcount"], ["Product design", 3]]
+  },
+  "budget": {
+    "Q1": [["Line", "Amount"], ["Hiring", 120000], ["Training", 15000.5]]
+  }
+}

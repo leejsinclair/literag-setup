@@ -1,0 +1,11 @@
+{
+  "_comment": "Shape of one changes.list page (Drive v3), which the fake reproduces. A trashed file arrives with removed=false and file.trashed=true; a permanently deleted one with removed=true and no file.",
+  "kind": "drive#changeList",
+  "nextPageToken": "12",
+  "changes": [
+    {"kind": "drive#change", "changeType": "file", "time": "2026-11-21T10:00:00.000Z", "removed": false, "fileId": "doc1",
+     "file": {"id": "doc1", "name": "Team topologies notes", "mimeType": "application/vnd.google-apps.document", "parents": ["lead"], "trashed": false,
+              "modifiedTime": "2026-11-21T10:00:00.000Z", "webViewLink": "https://docs.google.com/document/d/doc1/edit"}},
+    {"kind": "drive#change", "changeType": "file", "time": "2026-11-21T10:01:00.000Z", "removed": true, "fileId": "gone1"}
+  ]
+}

@@ -106,7 +106,7 @@ Owner form: `scripts/kb.sh ingest [--confirm-removals]`.
   ```
 
 - **Exit**: `0` done; `1` any document failed in LightRAG; `3` server stopped before the run,
-  or not healthy after the pre-removal backup (no removal performed); `4` any removal held.
+  or not healthy after the pre-removal backup (no removal performed); `4` any removal held. When documents failed and removals were also held, `1` wins, so a nightly run (which accepts `4`) never hides a failure.
 
 ### `kb-sync ask "question"`
 

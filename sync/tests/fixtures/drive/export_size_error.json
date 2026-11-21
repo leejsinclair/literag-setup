@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": 403,
+    "message": "This file is too large to be exported.",
+    "errors": [
+      {"message": "This file is too large to be exported.", "domain": "global", "reason": "exportSizeLimitExceeded"}
+    ]
+  }
+}

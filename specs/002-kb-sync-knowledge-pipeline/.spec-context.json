@@ -274,6 +274,110 @@
       "kind": "complete",
       "by": "ai",
       "at": "2026-11-21T02:12:27.501Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T031",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:51.948Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T032",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.022Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T033",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.090Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T034",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.156Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T035",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.226Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T036",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.295Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T037",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.361Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T038",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.433Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T039",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.506Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T040",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.574Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T041",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.643Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T042",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.709Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T043",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T02:28:52.775Z"
     }
   ],
   "request": "/home/lee/.config/Code/User/globalStorage/alfredoperez.speckit-companion/spec-editor/1795217797962-0jom5mq/spec.md",
@@ -323,6 +427,9 @@
         "T008",
         "T012",
         "T022"
+      ],
+      "tests": [
+        "sync/tests/test_config.py"
       ]
     },
     "FR-005": {
@@ -332,6 +439,9 @@
         "T023",
         "T027",
         "T028"
+      ],
+      "tests": [
+        "tests/unit/backup_kbsync.bats"
       ]
     },
     "FR-006": {
@@ -339,6 +449,9 @@
       "tasks": [
         "T031",
         "T043"
+      ],
+      "tests": [
+        "sync/tests/test_pull_scope.py"
       ]
     },
     "FR-007": {
@@ -346,6 +459,9 @@
       "tasks": [
         "T014",
         "T024"
+      ],
+      "tests": [
+        "sync/tests/test_store.py"
       ]
     },
     "FR-008": {
@@ -354,6 +470,10 @@
         "T013",
         "T023",
         "T037"
+      ],
+      "tests": [
+        "sync/tests/test_records.py",
+        "sync/tests/test_ingest_replace.py"
       ]
     },
     "FR-009": {
@@ -361,6 +481,9 @@
       "tasks": [
         "T032",
         "T043"
+      ],
+      "tests": [
+        "sync/tests/test_pull_changes.py"
       ]
     },
     "FR-010": {
@@ -372,6 +495,11 @@
         "T037",
         "T038",
         "T041"
+      ],
+      "tests": [
+        "sync/tests/test_lightrag.py",
+        "sync/tests/test_ingest_replace.py",
+        "sync/tests/test_ingest_removal.py"
       ]
     },
     "FR-011": {
@@ -379,6 +507,9 @@
       "tasks": [
         "T038",
         "T041"
+      ],
+      "tests": [
+        "sync/tests/test_ingest_removal.py"
       ]
     },
     "FR-012": {
@@ -387,6 +518,10 @@
         "T033",
         "T040",
         "T043"
+      ],
+      "tests": [
+        "sync/tests/test_pull_formats.py",
+        "sync/tests/test_sheets.py"
       ]
     },
     "FR-013": {
@@ -394,6 +529,9 @@
       "tasks": [
         "T034",
         "T043"
+      ],
+      "tests": [
+        "sync/tests/test_pull_duplicates.py"
       ]
     },
     "FR-014": {
@@ -402,6 +540,9 @@
         "T035",
         "T043",
         "T080"
+      ],
+      "tests": [
+        "sync/tests/test_pull_notebook_outputs.py"
       ]
     },
     "FR-015": {
@@ -437,6 +578,9 @@
         "T043",
         "T067",
         "T070"
+      ],
+      "tests": [
+        "sync/tests/test_auth_google.py"
       ]
     },
     "FR-019": {
@@ -561,6 +705,9 @@
         "T016",
         "T020",
         "T027"
+      ],
+      "tests": [
+        "tests/unit/backup_retention.bats"
       ]
     },
     "FR-034": {
@@ -568,6 +715,9 @@
       "tasks": [
         "T017",
         "T029"
+      ],
+      "tests": [
+        "tests/unit/kb_ingest.bats"
       ]
     }
   },
@@ -637,6 +787,41 @@
       "rejected": "cron; including NotebookLM/Claude in the nightly job",
       "by": "agent",
       "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Drive over its REST v3 JSON API with httpx; google-auth-oauthlib only for the loopback sign-in",
+      "why": "One fake transport (config.HTTP_TRANSPORT) serves every upstream in tests; one fewer dependency",
+      "rejected": "google-api-python-client (httplib2 needs a second fake mechanism)",
+      "by": "agent",
+      "at": "2026-11-21T02:31:10.257Z"
+    },
+    {
+      "decision": "Pinned interface sheet handed to every worker before tests were written",
+      "why": "Tests-first by separate workers would otherwise invent incompatible APIs",
+      "rejected": "Unedited briefs, whose never-append-a-failing-test rule conflicts with tests-first",
+      "by": "agent",
+      "at": "2026-11-21T02:31:10.257Z"
+    },
+    {
+      "decision": "PDFs stored as the original .pdf, provenance in the item record",
+      "why": "Data model's proposal; LightRAG parses PDFs and scanned ones fail visibly at ingest",
+      "rejected": "pypdf extraction to .md (owner decision still open)",
+      "by": "agent",
+      "at": "2026-11-21T02:31:10.257Z"
+    },
+    {
+      "decision": "ingest exit 1 takes precedence over 4 when documents failed and removals were held",
+      "why": "The nightly unit accepts 4 as success and must not hide a failure",
+      "rejected": "Always 4 when anything is held",
+      "by": "agent",
+      "at": "2026-11-21T02:31:10.257Z"
+    },
+    {
+      "decision": "Items with no LightRAG document are retired during pull (store file to .removed/), outside the removal limit",
+      "why": "No knowledge is removed, so no backup is needed",
+      "rejected": "Routing them through the backup-gated removal path",
+      "by": "agent",
+      "at": "2026-11-21T02:31:10.257Z"
     }
   ],
   "concerns": [
@@ -654,6 +839,26 @@
     },
     {
       "note": "plan-blocks.py failed: missing call-paths.md part; calls/states blocks written by hand"
+    },
+    {
+      "note": "tests/unit/common.bats tests 2 and 4 fail on the base branch before this work; not investigated",
+      "step": "implement"
+    },
+    {
+      "note": "shellcheck is not installed; kb.sh, backup.sh and restore.sh were only checked with bash -n and bats",
+      "step": "implement"
+    },
+    {
+      "note": "Drive test responses are synthesized from Google's documented shapes, not recorded; T044 is the first real-API run",
+      "step": "implement"
+    },
+    {
+      "note": "Drive cursor JSON also carries the folder-list fingerprint and folder-tree cache because Records has no config_fingerprint setter",
+      "step": "implement"
+    },
+    {
+      "note": "PDF-as-Markdown (FR-007) owner decision still open; current build keeps PDFs as .pdf",
+      "step": "implement"
     }
   ],
   "step_summaries": {
@@ -663,10 +868,13 @@
     },
     "tasks": {
       "summary": "97 tasks in 10 phases (Setup, Foundational, US1-US7, Polish), each laid out as waves; every file has one owner phase"
+    },
+    "implement": {
+      "summary": "Phases 1-3 built: setup, kb-sync foundations, Drive sync; 159 pytest and 30 bats pass; stopped at the Phase 3 checkpoint for T005 and T044"
     }
   },
   "approach": "A Python kb-sync one-shot Compose service under sync/, wrapped by scripts/kb.sh, keeps a SQLite record per item and drives LightRAG only over REST: stage flat copies and scan, delete via delete_document after a host-side backup. ask/kb_search retrieve context-only, filter via LightRAG's rerank binding to a loopback llama.cpp reranker (Ollama scoring fallback), and send only surviving chunks to Claude.",
-  "currentTask": "T030",
+  "currentTask": "T043",
   "task_summaries": {
     "T001": {
       "status": "DONE",
@@ -903,6 +1111,159 @@
         "sync/kb_sync/pull.py",
         "sync/kb_sync/sources/__init__.py"
       ]
+    },
+    "T031": {
+      "status": "DONE",
+      "did": "pull scope tests: allow-listed tree copied, out-of-tree changes never downloaded, removed-folder and moved-out items held as out_of_allow_list",
+      "files": [
+        "sync/tests/test_pull_scope.py"
+      ]
+    },
+    "T032": {
+      "status": "DONE",
+      "did": "no-change pull/plan stages nothing and downloads nothing; rename/move keep id and store path, change only title/link/locations",
+      "files": [
+        "sync/tests/test_pull_changes.py"
+      ]
+    },
+    "T033": {
+      "status": "DONE",
+      "did": "format tests: Doc to Markdown with text/plain fallback, PDF kept whole, Sheet/xlsx to tables, media skipped, oversized Doc failed with 9.9 MB, scanned PDF failed at ingest",
+      "files": [
+        "sync/tests/test_pull_formats.py"
+      ]
+    },
+    "T034": {
+      "status": "DONE",
+      "did": "md5Checksum duplicates stored/staged/ingested once, both folders recorded, later copy not re-ingested, duplicate promoted when canonical trashed",
+      "files": [
+        "sync/tests/test_pull_duplicates.py"
+      ]
+    },
+    "T035": {
+      "status": "DONE",
+      "did": "NotebookLM outputs tagged notebook-output; text staged and ingested; audio/video record_only, never downloaded",
+      "files": [
+        "sync/tests/test_pull_notebook_outputs.py"
+      ]
+    },
+    "T036": {
+      "status": "DONE",
+      "did": "revoked/missing token or 401 after refresh exits 3 with the renew message; auth google saves token 0600, URL on stderr, account on stdout",
+      "files": [
+        "sync/tests/test_auth_google.py"
+      ]
+    },
+    "T037": {
+      "status": "DONE",
+      "did": "replace: delete old doc, idle, scan, bind new doc_id; backup/plan-id/reapply guards refuse with 4; stopped server exits 3",
+      "files": [
+        "sync/tests/test_ingest_replace.py"
+      ]
+    },
+    "T038": {
+      "status": "DONE",
+      "did": "removal only after newer backup, run log has title/source/reason/backup_ref; 11 over limit 10 all held, additions land, exit 4; --confirm-removals performs them; replacements count toward limit",
+      "files": [
+        "sync/tests/test_ingest_removal.py"
+      ]
+    },
+    "T039": {
+      "status": "DONE",
+      "did": "kill after delete before scan leaves item stale and next run ingests once; kill after scan before bind binds existing doc without rescanning",
+      "files": [
+        "sync/tests/test_ingest_resume.py"
+      ]
+    },
+    "T040": {
+      "status": "DONE",
+      "did": "xlsx to Markdown: one heading and table per sheet, header row, pipes/newlines escaped, ragged rows padded, empty sheet noted",
+      "files": [
+        "sync/kb_sync/sources/sheets.py",
+        "sync/tests/test_sheets.py"
+      ]
+    },
+    "T041": {
+      "status": "DONE",
+      "did": "ingest planner/applier: limit and hold rules, out_of_allow_list always held, backup-ref guard, delete-stage-scan-bind with per-item commits, LightRAG failure reasons, summary line",
+      "files": [
+        "sync/kb_sync/ingest.py"
+      ]
+    },
+    "T042": {
+      "status": "DONE",
+      "did": "synthesized Drive v3 responses (folder tree, exports, PDFs, workbooks, media, duplicates, error and token bodies) plus fake Drive/OAuth/LightRAG harness",
+      "files": [
+        "sync/tests/fixtures/drive/",
+        "sync/tests/drive_fakes.py"
+      ]
+    },
+    "T043": {
+      "status": "DONE",
+      "did": "Drive source: loopback OAuth auth, httpx REST v3 client with token refresh, walk then changes feed with ancestor filter and folder cache, exports, sheets, PDFs, md5 dedupe, NotebookLM tagging, media skip",
+      "files": [
+        "sync/kb_sync/sources/drive.py"
+      ]
     }
+  },
+  "last_action": "Phase 3 verified; awaiting owner T005 then T044",
+  "verified": [
+    {
+      "what": "kb-sync pytest (host)",
+      "command": "cd sync && uv run -q --python 3.12 --with-requirements requirements.txt python -m pytest tests -q",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 2.6,
+      "result": "........................................................................ [ 90%] · ...............                                                          [100%] · 159 passed in 2.34s",
+      "commit": "be26220",
+      "tree": "5915f55439e3d3ad981873722c775dd3b26f5087"
+    },
+    {
+      "what": "kb-sync pytest (image)",
+      "command": "docker compose --profile kb-sync run --rm -T --entrypoint python kb-sync -m pytest -q",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 27.8,
+      "result": "159 passed in 26.77s ·  Container literag-setup-kb-sync-run-bcb187cc064b Creating  ·  Container literag-setup-kb-sync-run-bcb187cc064b Created",
+      "commit": "be26220",
+      "tree": "5915f55439e3d3ad981873722c775dd3b26f5087"
+    },
+    {
+      "what": "bats retention",
+      "command": "bats tests/unit/backup_retention.bats",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 1.9,
+      "result": "ok 10 each .removed/ folder keeps its 14 newest files by mtime · ok 11 BACKUP_RETENTION=0 exits 2 and prunes nothing · ok 12 a non-integer BACKUP_RETENTION exits 2",
+      "commit": "be26220",
+      "tree": "5915f55439e3d3ad981873722c775dd3b26f5087"
+    },
+    {
+      "what": "bats ingest health wait",
+      "command": "bats tests/unit/kb_ingest.bats",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 15.8,
+      "result": "ok 9 server stopped before the run: error names the URL and ./scripts/start.sh · ok 10 control: healthy after backup.sh runs --apply with the backup basename · ok 11 control: no removals means no backup and --apply without --backup",
+      "commit": "be26220",
+      "tree": "5915f55439e3d3ad981873722c775dd3b26f5087"
+    },
+    {
+      "what": "bats records in backups",
+      "command": "bats tests/unit/backup_kbsync.bats",
+      "source": "derived",
+      "exitCode": 0,
+      "durationSeconds": 0.7,
+      "result": "ok 5 restore.sh --force extracts data/kb-sync/ and moves the current copy aside with data/rag_storage/ · ok 6 restore.sh without --force refuses and leaves data/kb-sync/ untouched · ok 7 restore.sh of a pre-002 archive without data/kb-sync/ restores the KB, warns, and deletes no records",
+      "commit": "be26220",
+      "tree": "5915f55439e3d3ad981873722c775dd3b26f5087"
+    }
+  ],
+  "risk": {
+    "tier": "high",
+    "computed": "high",
+    "reasons": [
+      "86 files changed"
+    ]
   }
 }

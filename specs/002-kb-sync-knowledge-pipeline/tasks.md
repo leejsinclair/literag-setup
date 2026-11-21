@@ -109,23 +109,23 @@ Test files: `sync/tests/test_pull_scope.py`, `test_pull_changes.py`, `test_pull_
 
 **Wave 1 — independent (different files), written to fail first:**
 
-- [ ] **T031** [P] [US1] FR-006: `pull` copies files in allow-listed folders and their subfolders, and ignores a change to a file outside them. Items reachable only from a folder removed from config become removals that are always held (scenario 1, edge case) · sync/tests/test_pull_scope.py
-- [ ] **T032** [P] [US1] FR-009 and SC-004: with no upstream change, a second `pull` and `ingest --plan` stage zero items. A move or rename keeps the item's ID and store path, and changes only its title, link or locations · sync/tests/test_pull_changes.py
-- [ ] **T033** [P] [US1] FR-012: a Doc becomes Markdown and a PDF is downloaded. An `.xlsx` or Sheet becomes one Markdown table per sheet. Audio, video and images are listed as skipped. A Doc over the 10 MB export limit is reported as failed with its title and size (scenarios 5 and 6, oversized-Doc edge case) · sync/tests/test_pull_formats.py
-- [ ] **T034** [P] [US1] FR-013: the same `md5Checksum` in two subfolders gives one staged file and one ingest, with both folder locations recorded (scenario 4) · sync/tests/test_pull_duplicates.py
-- [ ] **T035** [P] [US1] FR-014: a file matching the NotebookLM output pattern gets source `notebook-output`. A text output is staged. An audio or video output is recorded but never staged · sync/tests/test_pull_notebook_outputs.py
-- [ ] **T036** [P] [US1] FR-018: with a revoked Google refresh token, `pull` exits `3` with `ERROR: drive sign-in expired. Renew it with scripts/kb.sh auth google` · sync/tests/test_auth_google.py
-- [ ] **T037** [P] [US1] FR-010 replace and FR-008: for an edited item, `ingest --apply` deletes the old `doc_id` and waits for idle before scanning the new staged copy, then binds the new `doc_id` (scenario 2) · sync/tests/test_ingest_replace.py
-- [ ] **T038** [P] [US1] FR-010 removal and FR-011. A trashed item is removed only when `--backup` names an archive newer than the plan, and the run log records title, source, reason and `backup_ref` (scenario 3, SC-008). Eleven removals with the limit at 10 hold all of them, still ingest the additions, and exit `4`. `--confirm-removals` then performs them · sync/tests/test_ingest_removal.py
-- [ ] **T039** [P] [US1] "Sync interrupted" edge case: killing `ingest --apply` after the delete but before the scan leaves the item `stale`, and the next run completes it with no duplicate document · sync/tests/test_ingest_resume.py
+- [x] **T031** [P] [US1] FR-006: `pull` copies files in allow-listed folders and their subfolders, and ignores a change to a file outside them. Items reachable only from a folder removed from config become removals that are always held (scenario 1, edge case) · sync/tests/test_pull_scope.py
+- [x] **T032** [P] [US1] FR-009 and SC-004: with no upstream change, a second `pull` and `ingest --plan` stage zero items. A move or rename keeps the item's ID and store path, and changes only its title, link or locations · sync/tests/test_pull_changes.py
+- [x] **T033** [P] [US1] FR-012: a Doc becomes Markdown and a PDF is downloaded. An `.xlsx` or Sheet becomes one Markdown table per sheet. Audio, video and images are listed as skipped. A Doc over the 10 MB export limit is reported as failed with its title and size (scenarios 5 and 6, oversized-Doc edge case) · sync/tests/test_pull_formats.py
+- [x] **T034** [P] [US1] FR-013: the same `md5Checksum` in two subfolders gives one staged file and one ingest, with both folder locations recorded (scenario 4) · sync/tests/test_pull_duplicates.py
+- [x] **T035** [P] [US1] FR-014: a file matching the NotebookLM output pattern gets source `notebook-output`. A text output is staged. An audio or video output is recorded but never staged · sync/tests/test_pull_notebook_outputs.py
+- [x] **T036** [P] [US1] FR-018: with a revoked Google refresh token, `pull` exits `3` with `ERROR: drive sign-in expired. Renew it with scripts/kb.sh auth google` · sync/tests/test_auth_google.py
+- [x] **T037** [P] [US1] FR-010 replace and FR-008: for an edited item, `ingest --apply` deletes the old `doc_id` and waits for idle before scanning the new staged copy, then binds the new `doc_id` (scenario 2) · sync/tests/test_ingest_replace.py
+- [x] **T038** [P] [US1] FR-010 removal and FR-011. A trashed item is removed only when `--backup` names an archive newer than the plan, and the run log records title, source, reason and `backup_ref` (scenario 3, SC-008). Eleven removals with the limit at 10 hold all of them, still ingest the additions, and exit `4`. `--confirm-removals` then performs them · sync/tests/test_ingest_removal.py
+- [x] **T039** [P] [US1] "Sync interrupted" edge case: killing `ingest --apply` after the delete but before the scan leaves the item `stale`, and the next run completes it with no duplicate document · sync/tests/test_ingest_resume.py
 
 ### Implementation
 
 **Wave 1 — independent (different files):**
 
-- [ ] **T040** [P] [US1] `.xlsx` to Markdown tables (one per sheet, header row, cells escaped) · sync/kb_sync/sources/sheets.py
-- [ ] **T041** [P] [US1] Ingest planner and applier per data-model → Ingest plan: limit and hold rules, the backup-ref guard, delete then stage then scan then bind, LightRAG failure reasons (including scanned PDFs) recorded per item, and the run summary line from contracts/kb-cli.md · sync/kb_sync/ingest.py
-- [ ] **T042** [P] [US1] Recorded Drive API responses for the tests: changes pages, a folder tree, an export, a PDF, an xlsx, media and duplicates · sync/tests/fixtures/drive/
+- [x] **T040** [P] [US1] `.xlsx` to Markdown tables (one per sheet, header row, cells escaped) · sync/kb_sync/sources/sheets.py
+- [x] **T041** [P] [US1] Ingest planner and applier per data-model → Ingest plan: limit and hold rules, the backup-ref guard, delete then stage then scan then bind, LightRAG failure reasons (including scanned PDFs) recorded per item, and the run summary line from contracts/kb-cli.md · sync/kb_sync/ingest.py
+- [x] **T042** [P] [US1] Recorded Drive API responses for the tests: changes pages, a folder tree, an export, a PDF, an xlsx, media and duplicates · sync/tests/fixtures/drive/
 
 **⟶ Wait for Wave 1 to finish, then:**
 
@@ -133,7 +133,7 @@ Test files: `sync/tests/test_pull_scope.py`, `test_pull_changes.py`, `test_pull_
 
 **⟶ Wait for T005, then:**
 
-- [ ] **T043** [US1] Drive source: `auth google` with the loopback OAuth flow (scopes from `config.google_scopes()`), the changes feed with `includeRemoved`, the allow-list ancestor filter with folder-tree cache, Docs export with fallback, PDF download, Sheets and `.xlsx` via `sheets.py`, `md5Checksum` de-duplication, NotebookLM-output tagging, and media skipping · sync/kb_sync/sources/drive.py
+- [x] **T043** [US1] Drive source: `auth google` with the loopback OAuth flow (scopes from `config.google_scopes()`), the changes feed with `includeRemoved`, the allow-list ancestor filter with folder-tree cache, Docs export with fallback, PDF download, Sheets and `.xlsx` via `sheets.py`, `md5Checksum` de-duplication, NotebookLM-output tagging, and media skipping · sync/kb_sync/sources/drive.py
 
 **⟶ Wait for T043, then:**
 

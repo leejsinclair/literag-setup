@@ -1,0 +1,9 @@
+{
+  "error": {
+    "code": 404,
+    "message": "File not found: {id}.",
+    "errors": [
+      {"message": "File not found: {id}.", "domain": "global", "reason": "notFound", "location": "fileId", "locationType": "parameter"}
+    ]
+  }
+}
