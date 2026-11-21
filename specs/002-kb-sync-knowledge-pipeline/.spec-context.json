@@ -2,8 +2,8 @@
   "workflow": "companion",
   "specName": "Personal knowledge pipeline (`kb-sync`)",
   "branch": "docs/ollama-setup-instructions",
-  "currentStep": "specify",
-  "status": "specified",
+  "currentStep": "plan",
+  "status": "planned",
   "history": [
     {
       "step": "specify",
@@ -18,6 +18,34 @@
       "kind": "complete",
       "by": "extension",
       "at": "2026-11-20T23:39:11.362Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-21T01:09:28.317Z"
+    },
+    {
+      "step": "plan",
+      "substep": "research",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:14:38.819Z"
+    },
+    {
+      "step": "plan",
+      "substep": null,
+      "kind": "complete",
+      "by": "extension",
+      "at": "2026-11-21T01:14:50.665Z"
+    },
+    {
+      "step": "plan",
+      "substep": "design",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:18:23.700Z"
     }
   ],
   "request": "/home/lee/.config/Code/User/globalStorage/alfredoperez.speckit-companion/spec-editor/1795217797962-0jom5mq/spec.md",
@@ -144,5 +172,88 @@
   },
   "intent": "Sync Drive and AppFlowy into a local Markdown store for LightRAG, answer with cited links via a local filter and Claude, and bridge topics to NotebookLM with reviewed pruning",
   "size": "oversized",
-  "selectedAt": "2026-11-20T23:36:37.988Z"
+  "selectedAt": "2026-11-20T23:36:37.988Z",
+  "workingBranch": "002-kb-sync-knowledge-pipeline",
+  "decisions": [
+    {
+      "decision": "Keep the pinned store path data/inputs/<source>/<source_id>.md and stage a flat copy <source>__<source_id>.md into data/inputs/ for POST /documents/scan",
+      "why": "v1.5.6 scan uses one os.scandir of INPUT_DIR and skips subdirectories; file_path is stored as basename, so the flat name keys back to the record",
+      "rejected": "Moving the store outside data/inputs or using /documents/upload, which contradict pinned identifiers",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Remove via DELETE /documents/delete_document {doc_ids, delete_file:true}, polling pipeline_status to idle; never call bare DELETE /documents",
+      "why": "The spec's DELETE /documents/{doc_id} does not exist in v1.5.6; bare DELETE /documents clears the whole KB",
+      "rejected": "The spec's pinned route (nonexistent)",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "kb.sh orchestrates plan -> backup.sh on host -> apply; kb-sync refuses removals without a backup newer than the plan",
+      "why": "The container has no Docker socket and must not mount data/backups (Invariant 4); this guarantees SC-008",
+      "rejected": "Running backup inside the container",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Retrieve with POST /query only_need_context and parse the Document Chunks JSON block; send only chunks to Claude",
+      "why": "Matches the pinned call; chunks carry reference_id -> file_path for citations; entities/relations lack per-source refs",
+      "rejected": "POST /query/data (structured, but not the pinned identifier)",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Reranker = llama.cpp server --reranking with bge-reranker-v2-m3 GGUF on CPU, wired via LightRAG RERANK_BINDING=cohere; kb-sync probes it and falls back to Ollama 0-3 scoring",
+      "why": "Small CPU image speaking the Cohere/Jina rerank shape; LightRAG applies MIN_RERANK_SCORE itself",
+      "rejected": "TEI (non-Cohere format), vLLM (heavy on CPU)",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "MCP server runs over stdio via scripts/kb.sh mcp -> compose run --rm -T kb-sync mcp",
+      "why": "Keeps it containerised (Principle II) with no daemon",
+      "rejected": "Host-installed MCP server",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Records in one SQLite file data/kb-sync/kb-sync.db with per-item transactions and JSON run logs; data/kb-sync joins backup.sh/restore.sh",
+      "why": "Crash-safe resumption and FR-005",
+      "rejected": "JSON manifest files",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    },
+    {
+      "decision": "Nightly via systemd user timer calling kb.sh nightly, pull+ingest only, SuccessExitStatus=4 for held removals",
+      "why": "Matches ollama.service pattern; keeps outbound content owner-initiated (Principle III)",
+      "rejected": "cron; including NotebookLM/Claude in the nightly job",
+      "by": "agent",
+      "at": "2026-11-21T01:18:23.775Z"
+    }
+  ],
+  "concerns": [
+    {
+      "note": "Spec Verbatim Constraints need amending: removal route and store-path-vs-scan (plan.md Spec corrections)"
+    },
+    {
+      "note": "Constitution v1.1.1 PATCH needed before Story 6 for public web URL checks and FR-030 topic-to-Claude web search"
+    },
+    {
+      "note": "Open: PDFs stored as original .pdf (provenance in record only) deviates from FR-007 Markdown store; owner decision needed"
+    },
+    {
+      "note": ".env and .env.example already differ at line 97"
+    },
+    {
+      "note": "plan-blocks.py failed: missing call-paths.md part; calls/states blocks written by hand"
+    }
+  ],
+  "step_summaries": {
+    "plan": {
+      "summary": "Plan, research (R1-R13), data model and four contracts for kb-sync",
+      "key_finding": "LightRAG v1.5.6 scan is non-recursive and has no DELETE /documents/{doc_id}; the spec's pinned store path and removal route need the staging and delete_document corrections"
+    }
+  },
+  "approach": "A Python kb-sync one-shot Compose service under sync/, wrapped by scripts/kb.sh, keeps a SQLite record per item and drives LightRAG only over REST: stage flat copies and scan, delete via delete_document after a host-side backup. ask/kb_search retrieve context-only, filter via LightRAG's rerank binding to a loopback llama.cpp reranker (Ollama scoring fallback), and send only surviving chunks to Claude."
 }
