@@ -3,7 +3,7 @@
 **Input**: [spec.md](./spec.md), [plan.md](./plan.md), [research.md](./research.md),
 [data-model.md](./data-model.md), [contracts/](./contracts/)
 
-> **Scale note.** 97 tasks across about 100 files (most of them tests) in five areas: the new `sync/` Python
+> **Scale note.** 98 tasks across about 100 files (most of them tests) in five areas: the new `sync/` Python
 > package, Compose and `.env`, the existing backup/restore/health scripts, owner-run checks
 > recorded under `specs/002-kb-sync-knowledge-pipeline/checks/`, and the docs. Watch the
 > removal path (T016-T018, T027, T029, T038, T041). It is the only code that deletes knowledge, and
@@ -20,8 +20,7 @@ endpoints (`httpx.MockTransport`). They never assert on SQLite rows directly.
 ## Phase 1: Setup
 
 Files: `.env`, `.env.example`, `.gitignore`, `data/kb-sync/.gitkeep`, `data/models/.gitkeep`,
-`packs/.gitkeep`, `compose.yaml`, `.specify/memory/constitution.md`,
-`specs/002-kb-sync-knowledge-pipeline/checks/{reranker,drive-oauth,appflowy}.md`,
+`packs/.gitkeep`, `compose.yaml` (kb-sync service), `.specify/memory/constitution.md`,
 `sync/tests/fixtures/eval.example.yaml`, `data/kb-sync/eval.yaml`
 
 **Wave 1 — independent (different files):**
@@ -29,23 +28,16 @@ Files: `.env`, `.env.example`, `.gitignore`, `data/kb-sync/.gitkeep`, `data/mode
 - [ ] **T001** [P] Restore byte identity between `.env` and `.env.example` (they differ at line 97). Move the trailing comment on the commented-out `LLM_BINDING_API_KEY` line onto its own line. Verify with `diff` · .env, .env.example
 - [ ] **T002** [P] Ignore `data/kb-sync/*`, `data/models/*`, `packs/*` and `secrets/`, each data directory keeping a `!…/.gitkeep`, and create the three `.gitkeep` files · .gitignore, data/kb-sync/.gitkeep, data/models/.gitkeep, packs/.gitkeep
 - [ ] **T003** [P] Constitution **v1.1.1 PATCH** (must land before Phase 8, Story 6). This builds on v1.1.0, which already satisfies FR-001 (commits d82ce62, 66f71d6). Add a "Public web" row to Recorded Cloud Dependencies: review checks fetch only URLs the owner listed in a pack, and send no knowledge-base content. Extend the Claude row: with the opt-in `--web` flag, the topic name goes to Claude's web search (FR-030). Update the Sync Impact Report, version and Last Amended date · .specify/memory/constitution.md
-- [ ] **T004** [P] **Owner** Phase 0 reranker check (R5). From the llama.cpp server README, confirm `--reranking`, the `/v1/rerank` path, and the response fields `results[].index` and `relevance_score`. Pin `RERANKER_IMAGE_TAG` and pick `RERANKER_PORT`. Download a GGUF build of `BAAI/bge-reranker-v2-m3` into `data/models/` and record its SHA-256. Score 30 chunks on the CPU in under 2 s. Record the doc URLs and results. If the check fails, switch to Infinity (R5) · specs/002-kb-sync-knowledge-pipeline/checks/reranker.md
-- [ ] **T005** [P] **Owner** Phase 0 Google check (R8). Create the OAuth desktop client with `drive.readonly`, published "In production" (unverified). Confirm `text/markdown` is on Drive's Docs export MIME table (else use `text/plain`). Put the client JSON at `secrets/google-client.json` with mode `0600` · specs/002-kb-sync-knowledge-pipeline/checks/drive-oauth.md
-- [ ] **T006** [P] **Owner** Phase 0 AppFlowy check (R9). Confirm the hosted AppFlowy Cloud base URL and that the GoTrue password grant works, from the AppFlowy API doc page · specs/002-kb-sync-knowledge-pipeline/checks/appflowy.md
 - [ ] **T007** [P] [US2] Commit the eval-set format: entries with `id`, `question`, `in_corpus`, `expected_source` (`<source>:<source_id>`) and `evidence` (a phrase the answer's passages must contain). Include 2 example entries built on public facts · sync/tests/fixtures/eval.example.yaml
 
 **⟶ Wait for Wave 1 to finish, then:**
 
-- [ ] **T008** Add the kb-sync and reranker keys from contracts/kb-cli.md → Configuration keys: `KB_SYNC_*`, `RERANKER_IMAGE_TAG`, `RERANKER_PORT`, `RERANK_BINDING=cohere`, `RERANK_MODEL`, `RERANK_BINDING_HOST`, `MIN_RERANK_SCORE=0.6`. Use the values from T004. Add `BACKUP_RETENTION=14` in the script-only section and a commented `KB_SYNC_NOTEBOOKLM_SCOPE` (the owner fills it in `.env` after T076). Keep the two files byte-identical, with every comment on its own line · .env, .env.example
+- [ ] **T008** Add the `KB_SYNC_*` keys from contracts/kb-cli.md → Configuration keys (the reranker keys come later, in T098). Add `BACKUP_RETENTION=14` in the script-only section and a commented `KB_SYNC_NOTEBOOKLM_SCOPE` (the owner fills it in `.env` after T076). Keep the two files byte-identical, with every comment on its own line · .env, .env.example
 - [ ] **T009** [P] [US2] **Owner** Write the FR-025 test set: about 20 Leadership-folder questions with known answers, plus 3 to 5 questions the corpus cannot answer. Follow the T007 format. This must be done before T051 measures the filters (SC-007) · data/kb-sync/eval.yaml
 
 **⟶ Wait for T008, then:**
 
 - [ ] **T010** Add the `kb-sync` service: profile `kb-sync`, `build: ./sync`, `network_mode: host`, user `1000:1000`. Mounts: `./.env:/app/.env:ro`, `./data/inputs`, `./data/kb-sync`, `./packs`, `./secrets`, and `${KB_SYNC_RESEARCH_DIR}` read-only (defaulting to an empty dir). No `data/rag_storage` and no `data/backups` (Invariant 4). No `environment:` block. Give it a rationale header comment in the file's existing style (FR-003) · compose.yaml
-
-**⟶ Wait for T010, then:**
-
-- [ ] **T011** Add the `reranker` service as its own reviewable commit (Principle IX). Use the pinned llama.cpp image from T004, CPU only, `--reranking`, `--host 127.0.0.1 --port ${RERANKER_PORT}`, `./data/models:/models:ro`, and a loopback healthcheck. Give `lightrag` `depends_on: reranker` with `required: false`, so starting the knowledge base starts the reranker and a reranker failure never blocks LightRAG · compose.yaml
 
 ---
 
@@ -107,7 +99,7 @@ Test files: `sync/tests/test_config.py`, `sync/tests/test_records.py`, `sync/tes
 **Independent Test**: pull and ingest the Leadership folder, then ask a question only one doc answers. Edit that doc and re-run; the answer changes. Delete it and re-run; the knowledge base no longer answers from it.
 
 Files: `sync/kb_sync/sources/drive.py`, `sync/kb_sync/sources/sheets.py`, `sync/kb_sync/ingest.py`,
-`sync/tests/fixtures/drive/`, `specs/002-kb-sync-knowledge-pipeline/checks/{leadership-acceptance,drive-token}.md`
+`sync/tests/fixtures/drive/`, `specs/002-kb-sync-knowledge-pipeline/checks/{drive-oauth,leadership-acceptance}.md`
 
 ### Tests
 
@@ -137,12 +129,15 @@ Test files: `sync/tests/test_pull_scope.py`, `test_pull_changes.py`, `test_pull_
 
 **⟶ Wait for Wave 1 to finish, then:**
 
+- [ ] **T005** [US1] **Owner** Phase 0 Google check (R8). Create the OAuth desktop client with `drive.readonly`, published "In production" (unverified). Confirm `text/markdown` is on Drive's Docs export MIME table (else use `text/plain`). Put the client JSON at `secrets/google-client.json` with mode `0600` · specs/002-kb-sync-knowledge-pipeline/checks/drive-oauth.md
+
+**⟶ Wait for T005, then:**
+
 - [ ] **T043** [US1] Drive source: `auth google` with the loopback OAuth flow (scopes from `config.google_scopes()`), the changes feed with `includeRemoved`, the allow-list ancestor filter with folder-tree cache, Docs export with fallback, PDF download, Sheets and `.xlsx` via `sheets.py`, `md5Checksum` de-duplication, NotebookLM-output tagging, and media skipping · sync/kb_sync/sources/drive.py
 
-**⟶ Wait for T043, then (independent):**
+**⟶ Wait for T043, then:**
 
-- [ ] **T044** [P] [US1] **Owner** Leadership acceptance: `kb.sh auth google`, `pull`, then `ingest` overnight. Record every one of the 44 files as ingested, skipped or failed (SC-003). Run the 5-edit and 3-deletion tests (SC-001, SC-002) and a no-change re-run under 5 minutes (SC-004) · specs/002-kb-sync-knowledge-pipeline/checks/leadership-acceptance.md
-- [ ] **T045** [P] [US1] **Owner** R8 token lifetime: at least 8 days after the first `auth google`, run `pull` without re-auth and record the outcome. If it fails, revisit the Clarifications decision before Phase 6 · specs/002-kb-sync-knowledge-pipeline/checks/drive-token.md
+- [ ] **T044** [US1] **Owner** Leadership acceptance: `kb.sh auth google`, `pull`, then `ingest` overnight. Record every one of the 44 files as ingested, skipped or failed (SC-003). Run the 5-edit and 3-deletion tests (SC-001, SC-002) and a no-change re-run under 5 minutes (SC-004) · specs/002-kb-sync-knowledge-pipeline/checks/leadership-acceptance.md
 
 **Checkpoint**: Drive sync works end to end on the Leadership folder, removals are backed up, logged and held over the limit.
 
@@ -155,7 +150,22 @@ Test files: `sync/tests/test_pull_scope.py`, `test_pull_changes.py`, `test_pull_
 
 Files: `sync/kb_sync/ask.py`, `sync/kb_sync/filters.py`, `sync/kb_sync/citations.py`,
 `sync/kb_sync/answer.py`, `sync/kb_sync/evalset.py`, `scripts/health.sh`,
-`sync/tests/fixtures/query_context.json`, `specs/002-kb-sync-knowledge-pipeline/checks/eval-results.md`
+`sync/tests/fixtures/query_context.json`, `specs/002-kb-sync-knowledge-pipeline/checks/{reranker,eval-results}.md`,
+and the reranker parts of `.env`, `.env.example` and `compose.yaml` (shared with Phase 1, see Dependencies)
+
+### Reranker setup (Principle IX, runs first)
+
+- [ ] **T004** [US2] Phase 0 reranker check (R5). From the llama.cpp server README, confirm `--reranking`, the `/v1/rerank` path, and the response fields `results[].index` and `relevance_score`. Pin `RERANKER_IMAGE_TAG` and pick `RERANKER_PORT`. Download a GGUF build of `BAAI/bge-reranker-v2-m3` into `data/models/` and record its SHA-256. Score 30 chunks on the CPU in under 2 s. Record the doc URLs and results. If the check fails, switch to Infinity (R5) · specs/002-kb-sync-knowledge-pipeline/checks/reranker.md
+
+**⟶ Wait for T004, then:**
+
+- [ ] **T098** [US2] Add the reranker keys from contracts/kb-cli.md → Configuration keys: `RERANKER_IMAGE_TAG`, `RERANKER_PORT`, `RERANK_BINDING=cohere`, `RERANK_MODEL`, `RERANK_BINDING_HOST`, `MIN_RERANK_SCORE=0.6`, with the values from T004. Keep the two files byte-identical, with every comment on its own line · .env, .env.example
+
+**⟶ Wait for T098, then:**
+
+- [ ] **T011** [US2] Add the `reranker` service as its own reviewable commit (Principle IX). Use the pinned llama.cpp image from T004, CPU only, `--reranking`, `--host 127.0.0.1 --port ${RERANKER_PORT}`, `./data/models:/models:ro`, and a loopback healthcheck. Give `lightrag` `depends_on: reranker` with `required: false`, so starting the knowledge base starts the reranker and a reranker failure never blocks LightRAG · compose.yaml
+
+**⟶ Wait for T011, then:**
 
 ### Tests
 
@@ -231,7 +241,13 @@ Test files: `sync/tests/test_mcp_tools.py`, `sync/tests/test_mcp_errors.py`
 **Independent Test**: pull a workspace and ingest. A question only an AppFlowy note answers is cited with a link that opens the page.
 
 Files: `sync/kb_sync/sources/appflowy.py`, `sync/kb_sync/sources/appflowy_blocks.py`,
-`sync/tests/fixtures/appflowy/`, `specs/002-kb-sync-knowledge-pipeline/checks/appflowy-acceptance.md`
+`sync/tests/fixtures/appflowy/`, `specs/002-kb-sync-knowledge-pipeline/checks/{appflowy,appflowy-acceptance}.md`
+
+### AppFlowy check (runs first)
+
+- [ ] **T006** [US4] **Owner** Phase 0 AppFlowy check (R9). Confirm the hosted AppFlowy Cloud base URL and that the GoTrue password grant works, from the AppFlowy API doc page · specs/002-kb-sync-knowledge-pipeline/checks/appflowy.md
+
+**⟶ Wait for T006, then:**
 
 ### Tests
 
@@ -336,11 +352,15 @@ Test files: `sync/tests/test_review_proposal.py`, `test_review_apply.py`, `test_
 
 ## Phase 9: User Story 7 — Unattended nightly sync (P3)
 
+**Prerequisite**: T044 (Leadership acceptance) is done, and the 8-day token gate below passes.
+
+- [ ] **T045** [US7] **Owner** R8 token lifetime: at least 8 days after the first `auth google`, run `pull` without re-auth and record the outcome. If it fails, revisit the Clarifications decision before the nightly job is enabled · specs/002-kb-sync-knowledge-pipeline/checks/drive-token.md
+
 **Goal**: a nightly job pulls and ingests, and the owner reads the result in the morning.
 **Independent Test**: enable the timer, edit a Drive doc during the day, and next morning the change is answered and the summary is written.
 
 Files: `sync/kb_sync/nightly.py`, `systemd/kb-sync-nightly.service`, `systemd/kb-sync-nightly.timer`,
-`specs/002-kb-sync-knowledge-pipeline/checks/nightly-acceptance.md`
+`specs/002-kb-sync-knowledge-pipeline/checks/{drive-token,nightly-acceptance}.md`
 
 ### Tests
 
@@ -387,15 +407,15 @@ Files: `README.md`, `CONTRIBUTING.md`, `CLAUDE.md`, `docs/ARCHITECTURE.md`, `doc
 
 ## Dependencies & Execution Order
 
-- **Phase 1 Setup**: Wave 1 (T001-T007) → T008 and T009 → T010 → T011.
+- **Phase 1 Setup**: Wave 1 (T001-T003, T007) → T008 and T009 → T010. No Phase 0 check gates it.
 - **Phase 2 Foundational**: needs Phase 1 (T008, T010). Tests T012-T018 first. Then Wave 1 (T019-T021) → Wave 2 (T022-T029) → T030. Blocks every story.
-- **Phase 3 US1 (MVP)**: needs Phase 2. Tests T031-T039 → Wave 1 (T040-T042) → T043 → T044 and T045.
-- **Phase 4 US2**: needs Phase 2 and US1's ingested corpus for T059. Tests T046-T051 → Wave 1 (T052-T055) → T056 → T057 and T058 → T059 (also needs T009).
+- **Phase 3 US1 (MVP)**: needs Phase 2. Tests T031-T039 → Wave 1 (T040-T042) → T005 (owner) → T043 → T044 (owner).
+- **Phase 4 US2**: needs Phase 2 and US1's ingested corpus for T059. T004 → T098 → T011 first, then tests T046-T051 → Wave 1 (T052-T055) → T056 → T057 and T058 → T059 (also needs T009).
 - **Phase 5 US3**: needs US2 (`ask.retrieve_filtered`). T060-T061 → T062 → T063.
-- **Phase 6 US4**: needs Phase 2 and T006. It can run alongside US2 and US3 (disjoint files). T064-T067 → T068 → T069 → T070 → T071. Revisit T045's outcome first.
+- **Phase 6 US4**: needs Phase 2. T006 (owner) first, then T064-T067 → T068 → T069 → T070 → T071. It can run alongside US2 and US3 (disjoint files).
 - **Phase 7 US5**: needs US1 and US2. T072-T075 → Wave 1 (T076-T078) → T079 → T080.
 - **Phase 8 US6**: needs US5 and T003. T081-T083 → T084 → T085.
-- **Phase 9 US7**: needs US1 trusted (T044) and ideally US4. T086-T087 → Wave 1 (T088-T089) → T090.
+- **Phase 9 US7**: needs T044 and the T045 token gate, and ideally US4. T045 → T086-T087 → Wave 1 (T088-T089) → T090.
 - **Phase 10 Polish**: after the stories it documents. Wave 1 (T091-T096) → T097.
 
-Every file has one owner phase. Parallel opportunities: once Phase 2 is done, US2, US4 and the test waves of later stories touch disjoint files and can be built side by side.
+Every file has one owner phase, with one deliberate exception: Phase 1 and Phase 4 both edit `.env`, `.env.example` and `compose.yaml` (kb-sync keys and service in Phase 1, reranker keys and service in Phase 4). Phase 4 starts only after Phase 1 is done, and no phase that runs alongside Phase 4 touches those files. Parallel opportunities: once Phase 2 is done, US2, US4 and the test waves of later stories touch disjoint files and can be built side by side.

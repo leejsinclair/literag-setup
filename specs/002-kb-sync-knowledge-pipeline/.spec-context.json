@@ -244,6 +244,7 @@
       "title": "Reranker filter preferred, local-model scoring fallback, answer names the filter",
       "tasks": [
         "T004",
+        "T098",
         "T011",
         "T047",
         "T053",
