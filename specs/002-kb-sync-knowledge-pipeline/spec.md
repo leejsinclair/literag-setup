@@ -11,6 +11,12 @@ The knowledge base from feature 001 answers questions, but only over files someo
 
 It is built in phases, each usable on its own. The stories below follow that order.
 
+## Clarifications
+
+### Session 2026-11-21
+
+- Q: Which Google Drive access scope does the sync tool use? → A: Read-only access to all of Drive (`drive.readonly`). The tool itself confines reads to the configured folder allow-list (FR-006). The OAuth app is published "In production" without Google verification, so sign-ins do not lapse weekly as they do in testing mode. Phase 0 confirms that an unverified production app avoids the 7-day refresh-token expiry.
+
 ## User Scenarios & Testing *(mandatory)*
 
 ### User Story 1 - Keep chosen Drive folders in the knowledge base (Priority: P1)
@@ -149,7 +155,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - **Knowledge base server stopped.** Pull still works; ingest, ask and the Claude Code tools fail with a message naming the stopped server and how to start it.
 - **Restore.** After the owner restores a backup, the tool's records match the restored knowledge base, because both are in the same backup.
 - **Answer stage offline.** If Claude cannot be reached, `ask` reports that and suggests `--local`; it never falls back to sending unfiltered context.
-- **Expired sign-in.** Google's testing-mode refresh tokens may expire after about seven days. The tool detects it and names the renew command.
+- **Expired sign-in.** A sign-in can still lapse or be revoked (for example, a Google refresh token unused for months, or a changed AppFlowy password). The tool detects it and names the renew command.
 - **Pre-release APIs change.** A NotebookLM or AppFlowy call that starts failing names the failing call; the knowledge base and Drive sync keep working.
 
 ## Requirements *(mandatory)*
@@ -233,7 +239,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 ## Assumptions
 
 - The phases run in the order of the stories: constitution amendment and checks first, then Stories 1, 2 and 3, then 4, then 5, then 6 and 7.
-- Phase 0 checks are prerequisites, not deliverables: how the knowledge base's query endpoint returns references in v1.5.6, which local reranker server runs most simply on this machine (likely on the CPU, since the 6 GB GPU is nearly full), and the hosted AppFlowy Cloud base URL and sign-in method.
+- Phase 0 checks are prerequisites, not deliverables: how the knowledge base's query endpoint returns references in v1.5.6, which local reranker server runs most simply on this machine (likely on the CPU, since the 6 GB GPU is nearly full), the hosted AppFlowy Cloud base URL and sign-in method, and that a Google OAuth app published "In production" but unverified, using `drive.readonly`, gets refresh tokens without the 7-day testing-mode expiry. If that check fails, the decision in Clarifications is revisited before Story 1 is built.
 - The reranker is a new local service. The constitution amendment records it under Principle IX, justified by the 3B model's weak relevance judgement.
 - Everything runs on the owner's EndeavourOS desktop, next to the knowledge base and Ollama. A cloud Claude session cannot reach the loopback-only server.
 - NotebookLM is used through the consumer API on the owner's personal Google account. Output generation stays manual until Google exposes it. The notebook source limit defaults to 50 (the free plan) until the owner confirms their plan.
@@ -244,7 +250,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - The owner's AppFlowy page count and database use are still unknown; both document pages and databases are supported.
 - Scanned PDFs are out of scope: there is no OCR. Audio and video transcription is out of scope.
 - Citation checking against primary sources in the essay workflow stays a human step; the knowledge base points to evidence, it does not replace reading it.
-- Google Drive access scope: [NEEDS CLARIFICATION: read-only access to all of Drive with the OAuth client kept in testing mode (simple, but Google classes it as restricted and sign-ins may lapse weekly), or per-file access granted by picking the KB folders once in a Google picker (narrower, but needs a one-time browser step)?]
+- Google Drive access uses read-only scope over all of Drive, narrowed to the folder allow-list by the tool (see Clarifications). The Google OAuth app is for the owner alone; Google shows an "unverified app" warning at sign-in, which the owner accepts.
 
 ## Verbatim Constraints
 
@@ -259,5 +265,6 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - Store file front-matter keys: `title`, `source`, `url`, `modified`
 - First corpus Drive folder: Leadership, ID `1qIMoMk98MsRmIJvLsfqo5Pv7f7aKlKRk`
 - Retrieval: `POST /query` with `mode: "mix"` and `only_need_context: true`; removal: `DELETE /documents/{doc_id}`; ingest: `POST /documents/scan`
+- Google Drive scope: `drive.readonly`; OAuth app publishing status "In production" (unverified)
 - Reranker: `BAAI/bge-reranker-v2-m3`, `RERANK_BINDING=cohere`, `MIN_RERANK_SCORE`
 - Constitution version after amendment: v1.1.0
