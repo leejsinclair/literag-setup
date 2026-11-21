@@ -120,7 +120,10 @@ source, exit codes, side effects, and the data-safety guarantee. Implementation 
 - **Success (`0`)**: prints the absolute archive path to stdout; archive verified.
 - **Failure (`1`)**: any step fails ⇒ archive is removed (no partial artifact left
   claiming success); service is returned to its prior running state regardless.
-- **Safety**: does not modify or delete `data/rag_storage/`. Does not delete older backups.
+- **Safety**: does not modify or delete `data/rag_storage/`. Superseded by spec 002 FR-033:
+  after a verified backup it keeps the newest `BACKUP_RETENTION` (default 14) archives in
+  `data/backups/` and prunes older `kb-*.tar.gz` files and their manifests, never the archive
+  just written, any other file, or an `--output` directory.
 
 ## `restore.sh`
 

@@ -92,7 +92,7 @@ Owner form: `scripts/kb.sh ingest [--confirm-removals]`.
   5. The host writes the index stamp `data/rag_storage/.literag-index.json`, shared with
      `ingest.sh`.
 - **Internal subcommands** (container only; not for the owner):
-  - `kb-sync ingest --plan` → stdout: the `plan_id`.
+  - `kb-sync ingest --plan [--confirm-removals]` → last stdout line: `plan_id=<id> removals=<n> held=<n>`, which `kb.sh` parses to decide whether to back up.
   - `kb-sync ingest --apply <plan_id> [--backup <archive name>] [--confirm-removals]` →
     refuses (exit `4`) to remove anything unless `--backup` names an archive created after
     the plan's `created_at`.

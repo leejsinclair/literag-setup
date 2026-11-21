@@ -32,7 +32,7 @@ switching needs a spec amendment.
 **Decision**: the store keeps the pinned path `data/inputs/<source>/<source_id>.md`.
 Ingest copies each new or changed store file to `data/inputs/<source>__<source_id>.md`
 (flat), calls `POST /documents/scan`, polls `GET /documents/track_status/{track_id}`, then
-finds the document ID through `GET /documents/paginated` by matching `file_path` (stored
+finds the document ID through `POST /documents/paginated` by matching `file_path` (stored
 as the basename). After processing, LightRAG moves the staged copy into
 `data/inputs/__parsed__/`.
 

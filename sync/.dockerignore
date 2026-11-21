@@ -1,0 +1,6 @@
+# Build context is sync/ only. Keep caches and the research placeholder out of the image.
+**/__pycache__
+**/.pytest_cache
+no-research
+.venv
+uv.lock

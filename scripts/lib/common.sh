@@ -76,6 +76,9 @@ load_env() {
   export LLM_BINDING_HOST="${LLM_BINDING_HOST:-http://localhost:11434}"
   export EMBEDDING_BINDING_HOST="${EMBEDDING_BINDING_HOST:-$LLM_BINDING_HOST}"
   export HEALTH_TIMEOUT_SECONDS="${HEALTH_TIMEOUT_SECONDS:-120}"
+  # Spec 002: backup retention (FR-033, validated by backup.sh) and the kb-sync keys kb.sh reads.
+  export BACKUP_RETENTION="${BACKUP_RETENTION:-14}"
+  export KB_SYNC_REMOVAL_LIMIT="${KB_SYNC_REMOVAL_LIMIT:-10}"
 }
 
 # --- Dependency preflight -------------------------------------------------
@@ -138,6 +141,19 @@ wait_for_health() {
 
 # curl helper: GET a URL, print body to stdout, fail (non-zero) on HTTP >= 400.
 http_get() { curl -fsS --max-time "${HTTP_MAX_TIME:-30}" "$@"; }
+
+# --- Index stamp ------------------------------------------------------------
+# write_index_stamp [track_id]
+# Records the embedding model/dimension the index was last built against, so
+# health.sh / restore.sh can warn when .env drifts and a re-index is due (FR-025).
+# Shared by ingest.sh and kb.sh (spec 002), so both ingest paths keep it current.
+write_index_stamp() {
+  local stamp="$REPO_ROOT/data/rag_storage/.literag-index.json"
+  jq -nc --arg m "${EMBEDDING_MODEL:-}" --arg d "${EMBEDDING_DIM:-}" \
+     --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg tr "${1:-}" \
+     '{embedding_model:$m, embedding_dim:$d, updated_utc:$t, last_track_id:$tr}' \
+     > "$stamp" 2>/dev/null || true
+}
 
 # --- Auto-run on source --------------------------------------------------
 # Every script wants repo root + .env + the five tools. The Docker daemon check

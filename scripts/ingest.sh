@@ -150,13 +150,8 @@ printf '%s processed / %s skipped (unchanged) / %s skipped (unsupported) / %s fa
 
 # Stamp what embedding model/dimension the index was last built against, so
 # health.sh / restore.sh can warn when .env drifts and a re-index is due (FR-025).
-if command -v jq >/dev/null 2>&1; then
-  stamp="$REPO_ROOT/data/rag_storage/.literag-index.json"
-  jq -nc --arg m "${EMBEDDING_MODEL:-}" --arg d "${EMBEDDING_DIM:-}" \
-     --arg t "$(date -u +%Y-%m-%dT%H:%M:%SZ)" --arg tr "$track_id" \
-     '{embedding_model:$m, embedding_dim:$d, updated_utc:$t, last_track_id:$tr}' \
-     > "$stamp" 2>/dev/null || true
-fi
+# Shared with kb.sh via common.sh (spec 002 T026).
+write_index_stamp "$track_id"
 
 if (( failed > 0 )); then
   # Per-document failure detail (FR-022): name the document, the stage, the reason.

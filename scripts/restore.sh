@@ -2,6 +2,7 @@
 # scripts/restore.sh — restore the knowledge base from a backup archive.
 #
 # Contract: contracts/operational-cli.md → restore.sh ; FR-014, Principle V
+#           spec 002 FR-005, data-model.md → Backup artifact, Invariant 7
 #   Args:   <archive-path> [--force] [--assume-yes] [--with-inputs]
 #   0  service healthy on the restored KB; prints displaced-dir path (if any)
 #   1  extract/health failed (rollback offered)
@@ -12,6 +13,11 @@
 # Never deletes prior KB state — it is MOVED to
 # data/rag_storage.pre-restore-<timestamp>/ . Any overwrite needs --force AND a
 # confirmation (interactive, or --assume-yes on non-interactive stdin).
+#
+# kb-sync records (spec 002): when the archive holds data/kb-sync/ it is restored with
+# the KB, and the current data/kb-sync/ is MOVED to data/kb-sync.pre-restore-<ts>/ under
+# the same <ts> as the KB. An archive without data/kb-sync/ (pre-002) restores the KB,
+# warns, and leaves the current records where they are.
 
 set -euo pipefail
 # shellcheck source=scripts/lib/common.sh
@@ -47,6 +53,13 @@ grep -q '^\(\./\)\?data/rag_storage/' <<<"$archive_listing" \
   || die "$EXIT_FAIL" "archive does not contain data/rag_storage/ — wrong file?"
 archive_has_inputs=0
 grep -q '^\(\./\)\?data/inputs/' <<<"$archive_listing" && archive_has_inputs=1 || true
+archive_has_records=0
+grep -q '^\(\./\)\?data/kb-sync/' <<<"$archive_listing" && archive_has_records=1 || true
+if (( ! archive_has_records )); then
+  warn "archive has no data/kb-sync/ (made before kb-sync?): the knowledge base is restored but kb-sync records are not."
+  warn "  The current data/kb-sync/ records are left in place, untouched. They may not match the restored KB;"
+  warn "  the next 'scripts/kb.sh pull' compares upstream with the records and rewrites what differs."
+fi
 if (( with_inputs && ! archive_has_inputs )); then
   die "$EXIT_USAGE" "--with-inputs given but the archive has no data/inputs/ (was it made without --with-inputs?)"
 fi
@@ -97,12 +110,18 @@ kb_nonempty=0
 if [[ -d "$kb" ]] && [[ -n "$(find "$kb" -mindepth 1 ! -name .gitkeep -print -quit 2>/dev/null)" ]]; then
   kb_nonempty=1
 fi
+records="$REPO_ROOT/data/kb-sync"
+records_nonempty=0
+if (( archive_has_records )) && [[ -d "$records" ]] \
+   && [[ -n "$(find "$records" -mindepth 1 ! -name .gitkeep -print -quit 2>/dev/null)" ]]; then
+  records_nonempty=1
+fi
 
-if (( kb_nonempty )); then
+if (( kb_nonempty || records_nonempty )); then
   if (( ! force )); then
-    die "$EXIT_REFUSED" "refusing to overwrite an existing knowledge base at data/rag_storage/ — re-run with --force to move it aside and restore"
+    die "$EXIT_REFUSED" "refusing to overwrite an existing knowledge base at data/rag_storage/ or kb-sync records at data/kb-sync/ — re-run with --force to move them aside and restore"
   fi
-  confirm "This will move the current data/rag_storage/ aside and restore from ${archive##*/}. Continue?" \
+  confirm "This will move the current data/rag_storage/ (and data/kb-sync/ records) aside and restore from ${archive##*/}. Continue?" \
     || die "$EXIT_REFUSED" "restore cancelled"
 fi
 if (( mismatch_confirm_needed )); then
@@ -118,12 +137,21 @@ if (( was_running )); then
 fi
 
 # --- 5. Displace existing state (never delete) -------------------------
+# One timestamp for both trees, so the displaced pair is easy to match up.
+ts="$(date -u +%Y%m%dT%H%M%SZ)"
 displaced=""
 if (( kb_nonempty )); then
-  displaced="$REPO_ROOT/data/rag_storage.pre-restore-$(date -u +%Y%m%dT%H%M%SZ)"
+  displaced="$REPO_ROOT/data/rag_storage.pre-restore-$ts"
   log "moving current knowledge base aside -> $displaced"
   mv "$kb" "$displaced"
   mkdir -p "$kb"
+fi
+displaced_records=""
+if (( records_nonempty )); then
+  displaced_records="$REPO_ROOT/data/kb-sync.pre-restore-$ts"
+  log "moving current kb-sync records aside -> $displaced_records"
+  mv "$records" "$displaced_records"
+  mkdir -p "$records"
 fi
 
 rollback() {
@@ -133,12 +161,18 @@ rollback() {
     mv "$displaced" "$kb"
     log "previous knowledge base restored from $displaced"
   fi
+  if [[ -n "$displaced_records" && -d "$displaced_records" ]]; then
+    rm -rf "$records"
+    mv "$displaced_records" "$records"
+    log "previous kb-sync records restored from $displaced_records"
+  fi
   if (( was_running )); then compose up -d >/dev/null 2>&1 || true; fi
 }
 
 # --- 6. Extract -----------------------------------------------------
 log "extracting archive ..."
 extract_paths=( "data/rag_storage" )
+(( archive_has_records )) && extract_paths+=( "data/kb-sync" )
 (( with_inputs )) && extract_paths+=( "data/inputs" )
 if ! tar -xzf "$archive" -C "$REPO_ROOT" "${extract_paths[@]}"; then
   rollback
@@ -156,6 +190,9 @@ if ! wait_for_health "${HEALTH_TIMEOUT_SECONDS}"; then
   if [[ -n "$displaced" ]]; then
     log "to roll back manually: ./scripts/stop.sh && rm -rf data/rag_storage && mv '$displaced' data/rag_storage && ./scripts/start.sh"
   fi
+  if [[ -n "$displaced_records" ]]; then
+    log "and for the kb-sync records: rm -rf data/kb-sync && mv '$displaced_records' data/kb-sync"
+  fi
   exit "$EXIT_FAIL"
 fi
 
@@ -165,5 +202,9 @@ if [[ -n "$displaced" ]]; then
   log "previous knowledge base preserved at: $displaced"
   log "delete it once you have confirmed the restore is good."
   printf '%s\n' "$displaced"
+fi
+if [[ -n "$displaced_records" ]]; then
+  log "previous kb-sync records preserved at: $displaced_records"
+  printf '%s\n' "$displaced_records"
 fi
 exit "$EXIT_OK"

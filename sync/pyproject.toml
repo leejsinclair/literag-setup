@@ -1,0 +1,25 @@
+[project]
+name = "kb-sync"
+version = "0.1.0"
+description = "Sync Drive, AppFlowy and local research into LightRAG, and answer with citations (spec 002)."
+requires-python = ">=3.12,<3.13"
+# Exact versions live in requirements.txt, compiled from this list with:
+#   uv pip compile pyproject.toml --extra test --python-version 3.12 --generate-hashes -o requirements.txt
+# The test extra is installed in the image so `kb.sh` can run the suite in-container.
+dependencies = [
+  "httpx",
+  "google-auth-oauthlib",
+  "anthropic",
+  "mcp",
+  "openpyxl",
+  "PyYAML",
+  "python-dotenv",
+]
+
+[project.optional-dependencies]
+test = ["pytest"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+# The image runs as uid 1000 over a root-owned /opt/kb-sync; skip the cache write.
+addopts = "-p no:cacheprovider"

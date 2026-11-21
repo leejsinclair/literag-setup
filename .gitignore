@@ -32,3 +32,9 @@ data/rag_storage.pre-restore-*/
 *~
 .DS_Store
 Thumbs.db
+
+# --- Python tooling noise (kb-sync) ---
+__pycache__/
+.pytest_cache/
+sync/.venv/
+sync/uv.lock

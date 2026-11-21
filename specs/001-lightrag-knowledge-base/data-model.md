@@ -173,6 +173,12 @@ Query LLM (LLM_MODEL)  ── independent of stored KB ──►  change ⇒ res
 **Invariant 2** — Only `restore.sh` (guarded) and an explicit LightRAG "clear documents"
 action (owner-initiated, out of the routine set) can remove KB content (FR-014).
 
+> **Amended by spec 002.** `kb-sync` may also remove a document's knowledge when its
+> upstream source changed or was deleted, always after a same-run backup, logged, and held
+> over a per-run limit (constitution v1.1.0, Principle V exception). Invariants 1, 2 and 4 as
+> they now apply to the whole repository are in
+> [002 data-model → Amended invariants](../002-kb-sync-knowledge-pipeline/data-model.md#amended-invariants).
+
 **Invariant 3** — `EMBEDDING_DIM` in `.env` always equals the native dimension of
 `EMBEDDING_MODEL`; a mismatch is a hard configuration error surfaced by `health.sh`.
 

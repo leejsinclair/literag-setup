@@ -43,7 +43,7 @@ except `.env` rerank configuration. Base URL `http://127.0.0.1:${PORT}`, no auth
 
 Polled until every document is in a terminal state (`processed` or `failed`).
 
-### `GET /documents/paginated`
+### `POST /documents/paginated`
 
 Finds a document's ID by matching `file_path` to the staged basename after scan.
 
