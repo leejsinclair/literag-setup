@@ -13,6 +13,8 @@ Modified principles:
     recorded dependency, on an owner-initiated command, with the minimum content needed.
   - V. Persistent Data Is Sacred: permits source-driven knowledge removal by the sync tool
     under backup, logging, and a held-removal safety limit.
+  - IX. Incremental Complexity: authorises one local reranker service for spec 002
+    (Story 2), gated on Phase 0 and on the FR-025 test set.
   - X. Future Integration Without Premature Implementation: brings Claude API answers and
     a local MCP server for Claude Code into scope, through the REST API only.
 
@@ -26,10 +28,7 @@ Templates / files requiring review:
   - .specify/templates/tasks-template.md ✅ no change required
   - README.md ✅ "What this deliberately does not do" updated
 
-Follow-up TODOs:
-  - The local reranker service (spec 002, Story 2) is NOT authorised by this amendment.
-    It needs its own Principle I/IX justification once Phase 0 has picked and tested a
-    server and the test set shows the local model's filtering falls short.
+Follow-up TODOs: none
 -->
 
 # LiteRAG Setup Constitution
@@ -154,6 +153,20 @@ The smallest working system MUST be built and validated first. Additional databa
 services, optimisations, caches, or integrations MUST NOT be added until a demonstrated
 requirement — an observed limitation, not a hypothetical one — justifies them. Each such
 addition MUST be introduced as a discrete, reviewable change.
+
+Authorised addition (added 1.1.0): spec 002 MAY add one local reranker service to the
+Compose project to filter retrieved passages before they reach the answer stage. It is
+permitted because the requirement is documented (spec 002 FR-020) and LightRAG supports a
+rerank binding natively. Its introduction MUST be a discrete, reviewable change and MUST
+satisfy all of:
+
+- Phase 0 has picked a server and recorded the choice with its source documentation
+  (Principle VIII), and it runs on the CPU unless the GPU has been shown to have room.
+- It is reached over loopback only, sends nothing off the machine, and does not start
+  unless the knowledge base does.
+- The FR-025 test set has been run with no filter, the reranker, and local-model scoring,
+  and the reranker is kept only if it keeps the needed evidence better than local-model
+  scoring. Otherwise the service is removed and scoring remains the filter.
 
 **Rationale**: Complexity added preemptively is rarely removed and usually mis-targeted.
 

@@ -240,7 +240,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 
 - The phases run in the order of the stories: constitution amendment and checks first, then Stories 1, 2 and 3, then 4, then 5, then 6 and 7.
 - Phase 0 checks are prerequisites, not deliverables: how the knowledge base's query endpoint returns references in v1.5.6, which local reranker server runs most simply on this machine (likely on the CPU, since the 6 GB GPU is nearly full), the hosted AppFlowy Cloud base URL and sign-in method, and that a Google OAuth app published "In production" but unverified, using `drive.readonly`, gets refresh tokens without the 7-day testing-mode expiry. If that check fails, the decision in Clarifications is revisited before Story 1 is built.
-- The reranker is a new local service. The v1.1.0 amendment does not authorise it; it gets its own Principle I and IX justification once Phase 0 has picked a server and the FR-025 test set shows the local-model filter falls short.
+- The reranker is a new local service, authorised by Principle IX in constitution v1.1.0 on three conditions: Phase 0 picks and records a server, it stays loopback-only and CPU-first, and it is kept only if the FR-025 test set shows it beats local-model scoring.
 - Everything runs on the owner's EndeavourOS desktop, next to the knowledge base and Ollama. A cloud Claude session cannot reach the loopback-only server.
 - NotebookLM is used through the consumer API on the owner's personal Google account. Output generation stays manual until Google exposes it. The notebook source limit defaults to 50 (the free plan) until the owner confirms their plan.
 - The consumer NotebookLM API's ability to remove a source is unconfirmed; Story 6 degrades to manual removal until it is.

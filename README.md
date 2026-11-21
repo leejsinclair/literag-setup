@@ -134,7 +134,7 @@ No authentication · no public exposure · no background file-watcher or
 ingest-on-startup · no external database or sidecar services · no scheduled
 backups · no automatic KB deletion when a file leaves `data/inputs/`.
 
-Constitution v1.1.0 permits three exceptions for feature 002, none of them built yet:
+Constitution v1.1.0 permits four exceptions for feature 002, none of them built yet:
 
 - **Cloud services.** Google Drive and AppFlowy Cloud (read only), NotebookLM, and the
   Claude API. Each is recorded with its reason and what it may see under Principle III
@@ -142,6 +142,8 @@ Constitution v1.1.0 permits three exceptions for feature 002, none of them built
 - **Source-driven removal.** `kb-sync` may replace or remove a document's knowledge when
   its Drive or AppFlowy source changes or is deleted, always after a backup, logged, and
   with large removals held for confirmation. An optional nightly job runs the sync.
+- **Local reranker.** One extra loopback-only container that filters retrieved passages,
+  kept only if testing shows it beats the local model at the job (Principle IX).
 - **Claude Code / MCP integration.** Claude API answers and a local MCP server for
   Claude Code, both over the REST API only. The LightRAG server is unchanged.
 
