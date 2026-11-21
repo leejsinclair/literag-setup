@@ -43,7 +43,7 @@ The owner asks a question on the command line. The knowledge base retrieves matc
 
 **Acceptance Scenarios**:
 
-1. **Given** an ingested corpus, **When** the owner asks a question it covers, **Then** the answer cites each claim with `[n]` and lists every cited source as `[n] Title (AppFlowy|Drive) link`, with each link opening the original item.
+1. **Given** an ingested corpus, **When** the owner asks a question it covers, **Then** the answer cites each claim with `[n]` and lists every cited source as `[n] Title (Drive|AppFlowy|NotebookLM|Web|Research) link`, with each link opening the original item.
 2. **Given** a question the corpus does not cover, **When** the owner asks it, **Then** the answer is "not in the knowledge base", Claude is not called, and nothing is filled in from general knowledge.
 3. **Given** any question, **When** the answer stage runs, **Then** only the filtered passages and the question leave the machine.
 4. **Given** the `--local` switch, **When** the owner asks a question, **Then** the local model writes the answer and no text leaves the machine.
@@ -100,9 +100,9 @@ For a topic, the owner builds a research pack: a reviewable list of knowledge-ba
 2. **Given** a pack, **When** the owner pushes it, **Then** the notebook exists, each item is a source in it, and the tool records which notebook source came from which item.
 3. **Given** a pack larger than the notebook's source limit, **When** the owner pushes it, **Then** nothing beyond the limit is pushed and the tool lists what was left out.
 4. **Given** a pushed item that changed since the push, **When** the owner pushes again, **Then** the changed item is re-added in its new version.
-5. **Given** a NotebookLM report saved in a configured Drive folder next to its sources, **When** the owner pulls and ingests, **Then** it is tagged as a NotebookLM output and cited like any other source.
+5. **Given** a NotebookLM report saved in a configured Drive folder next to its sources, **When** the owner pulls and ingests, **Then** it is tagged as a NotebookLM output and cited with the `NotebookLM` label.
 6. **Given** a NotebookLM podcast or video saved to Drive, **When** the owner pulls, **Then** it is recorded but not ingested.
-7. **Given** the `research/` folder of `leesinclair.dev` is configured as a source, **When** the owner pulls and ingests, **Then** past research is searchable and cited.
+7. **Given** the `research/` folder of `leesinclair.dev` is configured as a source, **When** the owner pulls and ingests, **Then** past research is searchable and cited with the `Research` label.
 
 ---
 
@@ -184,7 +184,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 
 - **FR-019**: `ask` MUST retrieve context from the knowledge base without generating an answer there, filter it locally, and send only the question and the surviving passages to Claude.
 - **FR-020**: The preferred filter MUST be a dedicated local reranker configured inside the knowledge base with a minimum relevance score; when it is unavailable, the tool MUST fall back to scoring each passage with the local model and keeping the top passages. The answer MUST say which filter ran.
-- **FR-021**: Each surviving passage MUST keep its source reference, and every answer MUST list its sources as `[n] Title (AppFlowy|Drive) link`, resolved through the tool's records.
+- **FR-021**: Each surviving passage MUST keep its source reference, and every answer MUST list its sources as `[n] Title (Drive|AppFlowy|NotebookLM|Web|Research) link`, resolved through the tool's records.
 - **FR-022**: Claude MUST be instructed to answer only from the passages and cite each claim. When no passage survives the filter, the tool MUST answer "not in the knowledge base" without calling Claude.
 - **FR-023**: `ask` MUST support `--local` (the local model answers; nothing leaves the machine) and `--no-filter` (the unfiltered context goes to the answer stage).
 - **FR-024**: Two local tools for Claude Code on this machine MUST be provided: `kb_search` returns filtered, cited passages for a query, and `kb_get_source` returns a source's details and stored text.
@@ -251,10 +251,10 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - Tool and commands: `kb-sync`, `kb-sync auth google|appflowy`, `kb-sync pull [--source drive|appflowy]`, `kb-sync ingest`, `kb-sync pack <topic>`, `kb-sync notebook push <topic>`, `kb-sync review <topic>`, `kb-sync review <topic> --apply`, `kb-sync ask "question"`, wrapper `scripts/kb.sh`
 - Ask switches: `--local`, `--no-filter`
 - Claude Code tools: `kb_search`, `kb_get_source`
-- Citation line: `[n] Title (AppFlowy|Drive) link`
+- Citation line: `[n] Title (Drive|AppFlowy|NotebookLM|Web|Research) link`
 - No-answer text: "not in the knowledge base"
 - Locations: tool source `sync/`; records `data/kb-sync/`; store files `data/inputs/<source>/<source_id>.md`; packs `packs/<topic>.yaml`
-- Source values: `drive`, `appflowy`, `notebook-output`, `web`
+- Source values: `drive`, `appflowy`, `notebook-output`, `web`, `research`
 - Status values: `active`, `stale`, `removed`
 - Store file front-matter keys: `title`, `source`, `url`, `modified`
 - First corpus Drive folder: Leadership, ID `1qIMoMk98MsRmIJvLsfqo5Pv7f7aKlKRk`
