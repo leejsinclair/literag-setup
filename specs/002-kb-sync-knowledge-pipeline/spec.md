@@ -100,7 +100,7 @@ For a topic, the owner builds a research pack: a reviewable list of knowledge-ba
 2. **Given** a pack, **When** the owner pushes it, **Then** the notebook exists, each item is a source in it, and the tool records which notebook source came from which item.
 3. **Given** a pack larger than the notebook's source limit, **When** the owner pushes it, **Then** nothing beyond the limit is pushed and the tool lists what was left out.
 4. **Given** a pushed item that changed since the push, **When** the owner pushes again, **Then** the changed item is re-added in its new version.
-5. **Given** a NotebookLM report saved to a configured Drive folder, **When** the owner pulls and ingests, **Then** it is tagged as a NotebookLM output and cited like any other source.
+5. **Given** a NotebookLM report saved in a configured Drive folder next to its sources, **When** the owner pulls and ingests, **Then** it is tagged as a NotebookLM output and cited like any other source.
 6. **Given** a NotebookLM podcast or video saved to Drive, **When** the owner pulls, **Then** it is recorded but not ingested.
 7. **Given** the `research/` folder of `leesinclair.dev` is configured as a source, **When** the owner pulls and ingests, **Then** past research is searchable and cited.
 
@@ -253,7 +253,7 @@ Once Stories 1 and 4 are trusted, a nightly job pulls and ingests on its own, ou
 - Claude Code tools: `kb_search`, `kb_get_source`
 - Citation line: `[n] Title (AppFlowy|Drive) link`
 - No-answer text: "not in the knowledge base"
-- Locations: tool source `sync/`; records `data/kb-sync/`; store files `data/inputs/<source>/<source_id>.md`; packs `packs/<topic>.yaml`; NotebookLM outputs Drive folder `KB/Outputs/<topic>/`
+- Locations: tool source `sync/`; records `data/kb-sync/`; store files `data/inputs/<source>/<source_id>.md`; packs `packs/<topic>.yaml`
 - Source values: `drive`, `appflowy`, `notebook-output`, `web`
 - Status values: `active`, `stale`, `removed`
 - Store file front-matter keys: `title`, `source`, `url`, `modified`
