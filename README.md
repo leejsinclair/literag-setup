@@ -123,12 +123,27 @@ breakdown live under
 [`specs/001-lightrag-knowledge-base/`](specs/001-lightrag-knowledge-base/) and
 `.specify/memory/constitution.md`.
 
+Feature 002, the `kb-sync` knowledge pipeline, is in design under
+[`specs/002-kb-sync-knowledge-pipeline/`](specs/002-kb-sync-knowledge-pipeline/). It syncs
+chosen Google Drive folders and AppFlowy pages into the knowledge base, answers with cited
+links, and pushes research packs to NotebookLM. Nothing from it is built yet.
+
 ## What this deliberately does not do
 
 No authentication · no public exposure · no background file-watcher or
 ingest-on-startup · no external database or sidecar services · no scheduled
-backups/ingestion · no automatic KB deletion when a file leaves `data/inputs/` ·
-no Claude Code / MCP integration (the REST API is preserved as the seam).
+backups · no automatic KB deletion when a file leaves `data/inputs/`.
+
+Constitution v1.1.0 permits three exceptions for feature 002, none of them built yet:
+
+- **Cloud services.** Google Drive and AppFlowy Cloud (read only), NotebookLM, and the
+  Claude API. Each is recorded with its reason and what it may see under Principle III
+  (Local-First). The knowledge base itself stays local.
+- **Source-driven removal.** `kb-sync` may replace or remove a document's knowledge when
+  its Drive or AppFlowy source changes or is deleted, always after a backup, logged, and
+  with large removals held for confirmation. An optional nightly job runs the sync.
+- **Claude Code / MCP integration.** Claude API answers and a local MCP server for
+  Claude Code, both over the REST API only. The LightRAG server is unchanged.
 
 ## Contributing & license
 

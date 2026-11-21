@@ -1,36 +1,35 @@
 <!--
 Sync Impact Report
 ==================
-Version change: (none) → 1.0.0
-Rationale: Initial ratification of the project constitution. MAJOR baseline established.
+Version change: 1.0.0 → 1.1.0
+Rationale: MINOR. Materially expanded guidance for feature 002 (kb-sync knowledge
+pipeline, specs/002-kb-sync-knowledge-pipeline/ FR-001). No principle removed; Principle X
+is narrowed from "out of scope" to "in scope under stated limits", which widens what is
+permitted without invalidating anything built under 1.0.0.
 
-Modified principles: n/a (initial adoption)
+Modified principles:
+  - III. Local-First: adds the Recorded Cloud Dependencies table (Google Drive, AppFlowy
+    Cloud, NotebookLM, Claude API) and the rule that content leaves the machine only to a
+    recorded dependency, on an owner-initiated command, with the minimum content needed.
+  - V. Persistent Data Is Sacred: permits source-driven knowledge removal by the sync tool
+    under backup, logging, and a held-removal safety limit.
+  - X. Future Integration Without Premature Implementation: brings Claude API answers and
+    a local MCP server for Claude Code into scope, through the REST API only.
 
-Added principles:
-  - I. Simplicity Over Infrastructure
-  - II. Containerised Application
-  - III. Local-First
-  - IV. Replaceable AI Models
-  - V. Persistent Data Is Sacred
-  - VI. Reproducibility
-  - VII. Operational Clarity
-  - VIII. Evidence Over Assumption
-  - IX. Incremental Complexity
-  - X. Future Integration Without Premature Implementation
-
-Added sections:
-  - Additional Constraints (deployment & environment)
-  - Development Workflow & Quality Gates
-  - Governance
-
+Added principles: none
+Added sections: none
 Removed sections: none
 
 Templates / files requiring review:
   - .specify/templates/plan-template.md ✅ reads constitution at runtime; no change required
   - .specify/templates/spec-template.md ✅ no change required
   - .specify/templates/tasks-template.md ✅ no change required
+  - README.md ✅ "What this deliberately does not do" updated
 
-Follow-up TODOs: none
+Follow-up TODOs:
+  - The local reranker service (spec 002, Story 2) is NOT authorised by this amendment.
+    It needs its own Principle I/IX justification once Phase 0 has picked and tested a
+    server and the test set shows the local model's filtering falls short.
 -->
 
 # LiteRAG Setup Constitution
@@ -68,8 +67,24 @@ external APIs MUST NOT be introduced unless a specific requirement explicitly de
 and any such dependency MUST be recorded with its justification. Network exposure MUST be
 limited to localhost until a deliberate, documented decision widens it.
 
+The knowledge base itself (the Markdown store, index, graph, and sync records) MUST stay
+on the local machine. Content MAY leave the machine only to a dependency recorded below,
+only on a command the owner runs, and only the minimum that command needs. The owner MUST
+be able to skip any command that sends content out without losing local function.
+
+**Recorded Cloud Dependencies** (added 1.1.0 for feature 002):
+
+| Service | Why it is needed | What crosses the boundary |
+| --- | --- | --- |
+| Google Drive | The owner's documents live there; syncing chosen folders is the requirement (spec 002 FR-006). | Read only (`drive.readonly`), narrowed to the configured folder allow-list by the sync tool. Nothing is written to Drive. |
+| AppFlowy Cloud | The owner's notes live in the hosted service (spec 002 FR-015). | Read only: page tree and page content of the chosen workspace. |
+| NotebookLM (consumer API) | Research packs are pushed to a notebook for report, podcast, and infographic generation, which has no local equivalent (spec 002 FR-027). | The items in a pack the owner builds and pushes. Never the whole store. |
+| Claude API | The owner's chosen writer of cited answers from retrieved passages (spec 002 FR-019). | The question and the passages that survive the local filter. `--local` sends nothing. |
+
 **Rationale**: The value of a personal knowledge base depends on the owner retaining full
-custody of their data and not leaking it to third parties by default.
+custody of their data and not leaking it to third parties by default. Where a cloud
+service is the requirement, recording it and bounding what it sees keeps that custody
+deliberate.
 
 ### IV. Replaceable AI Models
 
@@ -89,6 +104,13 @@ mounts that survive `docker compose down` and image replacement. Destructive ope
 (volume deletion, index wipes, bulk re-ingestion that replaces data) MUST require explicit
 human confirmation and MUST NOT be default behaviour of any routine command. A backup of
 the knowledge base MUST be supported and MUST be taken before any significant upgrade.
+
+One exception (added 1.1.0): the sync tool MAY remove a document's knowledge without
+per-run confirmation when that document's upstream source changed (replace) or was deleted
+or trashed (remove). Every such removal MUST follow a knowledge-base backup taken in the
+same run, MUST be logged with the item and the reason, and removals beyond a configured
+per-run safety limit MUST be held for the owner's confirmation. The sync tool's records
+MUST be backed up and restored together with the knowledge base.
 
 **Rationale**: The knowledge base is the irreplaceable asset; everything else in the
 repository can be rebuilt from source.
@@ -138,12 +160,17 @@ addition MUST be introduced as a discrete, reviewable change.
 ### X. Future Integration Without Premature Implementation
 
 The LightRAG REST API MUST remain available and stable as the integration boundary for
-future AI tooling. Integrations such as Claude Code and MCP are explicitly OUT OF SCOPE for
-the initial implementation and MUST NOT be built, stubbed, or designed around beyond
-preserving the REST API as the seam.
+AI tooling. Integrations such as Claude Code and MCP were OUT OF SCOPE for the initial
+implementation (feature 001).
 
-**Rationale**: Keeping a clean API boundary costs nothing now and preserves every future
-option; building the integrations now spends effort on unvalidated needs.
+From 1.1.0, feature 002 brings two integrations into scope: Claude API answers and a local
+MCP server that lets Claude Code on this machine query the knowledge base. Both MUST reach
+LightRAG only through its REST API, MUST NOT change the LightRAG server beyond its
+configuration, and MUST stay on the loopback interface. Any further integration MUST be
+specified as its own feature before it is built.
+
+**Rationale**: Keeping a clean API boundary costs nothing and preserves every option.
+Integrations are built when a specified need exists, not before.
 
 ## Additional Constraints
 
@@ -186,4 +213,4 @@ constitution wins.
 - **Runtime guidance**: Agent- and contributor-facing operational guidance lives in the
   repository README and Spec Kit templates, which defer to this constitution.
 
-**Version**: 1.0.0 | **Ratified**: 2026-08-30 | **Last Amended**: 2026-08-30
+**Version**: 1.1.0 | **Ratified**: 2026-08-30 | **Last Amended**: 2026-11-21
