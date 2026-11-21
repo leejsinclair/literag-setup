@@ -14,14 +14,57 @@ This repository *is* the deployment: `compose.yaml`, `.env.example`, `scripts/`,
 ## Prerequisites (host)
 
 - Docker Engine + Docker Compose v2 (`docker compose version`), daemon running
-- Ollama running on the host (`curl -s http://localhost:11434/api/tags`)
-- Models pulled: `ollama pull qwen2.5:3b-instruct` and `ollama pull bge-m3`
-- `curl`, `jq`, `tar` (`pacman -S jq` on EndeavourOS)
+- Ollama installed and running on the host — see [Ollama setup](#ollama-setup) below
+- `curl`, `jq`, `tar` (`pacman -S jq` on EndeavourOS; `curl`/`tar` are usually present)
 - No GPU required. If you have an NVIDIA GPU, run `./scripts/apply-perf-tuning.sh`
   after setup to install the tuned, GPU-accelerated Ollama service.
 
 Full prerequisite table and first-time setup (target: **under 30 minutes**):
 [`specs/001-lightrag-knowledge-base/quickstart.md`](specs/001-lightrag-knowledge-base/quickstart.md).
+
+### Ollama setup
+
+LightRAG does not run the models itself — it calls a plain [Ollama](https://ollama.com)
+([github.com/ollama/ollama](https://github.com/ollama/ollama)) server on the host over
+`http://localhost:11434`. The container uses the host network namespace and reaches it
+directly, so **no Ollama-side configuration is needed** for the default setup.
+
+**1. Install Ollama.** Linux one-liner (see the
+[Linux install docs](https://github.com/ollama/ollama/blob/main/docs/linux.md) for the
+manual / no-root method — this repo's box uses a manual install at `~/.local/bin/ollama`):
+
+```bash
+curl -fsSL https://ollama.com/install.sh | sh
+```
+
+**2. Start the server** and confirm it answers:
+
+```bash
+ollama serve            # or: systemctl --user start ollama
+curl -s http://localhost:11434/api/tags
+```
+
+**3. Pull the two models** referenced by `.env.example`:
+
+| Model | `.env` key | Role | Size | Notes |
+|---|---|---|---|---|
+| `qwen2.5:3b-instruct` | `LLM_MODEL` | entity/relation extraction + query answering | ~1.9 GB | Any Ollama chat model works; changing it is a `restart.sh`, no re-index. |
+| `bge-m3` (`bge-m3:latest`) | `EMBEDDING_MODEL` | text embeddings (1024-dim) | ~1.2 GB | `EMBEDDING_DIM` **must** match the model's native dimension. Changing it invalidates the vector index — full re-ingest required. |
+
+```bash
+ollama pull qwen2.5:3b-instruct
+ollama pull bge-m3
+```
+
+If you edit `LLM_MODEL` / `EMBEDDING_MODEL` / `EMBEDDING_DIM` in `.env`, pull the matching
+model first — `./scripts/health.sh` fails loudly if a configured model is not installed.
+See [`docs/MODEL_SELECTION.md`](docs/MODEL_SELECTION.md) for how to choose alternatives.
+
+**4. (NVIDIA GPU only)** After the LightRAG service is up, run
+`./scripts/apply-perf-tuning.sh` to install the tuned systemd **user** service
+([`ollama/ollama.service`](ollama/ollama.service)) that forces full GPU offload and keeps
+both models resident. The stock `.env` is already tuned for a 6 GB card; adjust it for
+other GPUs per `docs/MODEL_SELECTION.md` → "Performance tuning".
 
 ## Quickstart
 
