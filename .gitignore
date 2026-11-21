@@ -8,6 +8,12 @@ data/inputs/*
 data/rag_storage/*
 data/prompts/*
 data/backups/*
+data/kb-sync/*
+data/models/*
+packs/*
+
+# kb-sync secrets: OAuth client and tokens, AppFlowy and Anthropic credentials (FR-004)
+secrets/
 
 # Displaced KB state left behind by restore.sh --force
 data/rag_storage.pre-restore-*/
@@ -17,6 +23,9 @@ data/rag_storage.pre-restore-*/
 !data/rag_storage/.gitkeep
 !data/prompts/.gitkeep
 !data/backups/.gitkeep
+!data/kb-sync/.gitkeep
+!data/models/.gitkeep
+!packs/.gitkeep
 
 # --- Editor / OS noise ---
 *.swp

@@ -10,6 +10,13 @@
 # ${HOST}:${PORT} itself; with HOST=127.0.0.1 the Web UI and API are loopback-only, and the
 # container reaches the host's Ollama at http://localhost:11434 with no Ollama change.
 # Because host networking publishes nothing, there is deliberately NO `ports:` block.
+#
+# kb-sync (spec 002, FR-003): a one-shot tool, never a daemon. It sits behind the `kb-sync`
+# profile, so `up -d` (start.sh) never starts it; scripts/kb.sh runs it with
+# `compose --profile kb-sync run --rm kb-sync ...`. It reaches LightRAG only over the REST
+# API at 127.0.0.1:${PORT} (FR-002), so it does not mount data/rag_storage, and like
+# lightrag it never mounts data/backups (Invariant 4). Backups are taken on the host by
+# scripts/kb.sh before any removal (plan.md -> Calls).
 
 services:
   lightrag:
@@ -39,3 +46,19 @@ services:
       timeout: 10s
       retries: 5
       start_period: 90s
+
+  kb-sync:
+    build: ./sync
+    profiles: ["kb-sync"]
+    network_mode: host
+    # Matches the owner's uid, so the 0600 secrets and 0644 .env are readable.
+    user: "1000:1000"
+    volumes:
+      - ./.env:/app/.env:ro
+      - ./data/inputs:/data/inputs
+      - ./data/kb-sync:/data/kb-sync
+      - ./packs:/data/packs
+      # Read-write: `kb-sync auth` writes refresh tokens here (FR-004, FR-018).
+      - ./secrets:/run/secrets/kb-sync
+      # Optional research/ source (FR-017); an empty placeholder when unset.
+      - ${KB_SYNC_RESEARCH_DIR:-./sync/no-research}:/data/research:ro

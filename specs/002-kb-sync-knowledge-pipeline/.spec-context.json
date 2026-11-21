@@ -2,8 +2,8 @@
   "workflow": "companion",
   "specName": "Personal knowledge pipeline (`kb-sync`)",
   "branch": "docs/ollama-setup-instructions",
-  "currentStep": "tasks",
-  "status": "ready-to-implement",
+  "currentStep": "implement",
+  "status": "implementing",
   "history": [
     {
       "step": "specify",
@@ -67,6 +67,61 @@
       "kind": "complete",
       "by": "ai",
       "at": "2026-11-21T01:41:27.970Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "kind": "start",
+      "by": "extension",
+      "at": "2026-11-21T01:55:36.226Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T001",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:16.331Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T002",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:16.331Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T003",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:16.332Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T007",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:16.332Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T008",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:45.074Z"
+    },
+    {
+      "step": "implement",
+      "substep": null,
+      "task": "T010",
+      "kind": "complete",
+      "by": "ai",
+      "at": "2026-11-21T01:56:56.747Z"
     }
   ],
   "request": "/home/lee/.config/Code/User/globalStorage/alfredoperez.speckit-companion/spec-editor/1795217797962-0jom5mq/spec.md",
@@ -458,5 +513,84 @@
       "summary": "97 tasks in 10 phases (Setup, Foundational, US1-US7, Polish), each laid out as waves; every file has one owner phase"
     }
   },
-  "approach": "A Python kb-sync one-shot Compose service under sync/, wrapped by scripts/kb.sh, keeps a SQLite record per item and drives LightRAG only over REST: stage flat copies and scan, delete via delete_document after a host-side backup. ask/kb_search retrieve context-only, filter via LightRAG's rerank binding to a loopback llama.cpp reranker (Ollama scoring fallback), and send only surviving chunks to Claude."
+  "approach": "A Python kb-sync one-shot Compose service under sync/, wrapped by scripts/kb.sh, keeps a SQLite record per item and drives LightRAG only over REST: stage flat copies and scan, delete via delete_document after a host-side backup. ask/kb_search retrieve context-only, filter via LightRAG's rerank binding to a loopback llama.cpp reranker (Ollama scoring fallback), and send only surviving chunks to Claude.",
+  "currentTask": "T010",
+  "task_summaries": {
+    "T001": {
+      "status": "DONE",
+      "did": "Restored .env/.env.example identity, ignore rules and skeleton, constitution v1.1.1, eval-set format",
+      "files": [
+        ".env",
+        ".env.example",
+        ".gitignore",
+        "data/kb-sync/.gitkeep",
+        "data/models/.gitkeep",
+        "packs/.gitkeep",
+        ".specify/memory/constitution.md",
+        "sync/tests/fixtures/eval.example.yaml"
+      ],
+      "wave": "T001-T007"
+    },
+    "T002": {
+      "status": "DONE",
+      "did": "Restored .env/.env.example identity, ignore rules and skeleton, constitution v1.1.1, eval-set format",
+      "files": [
+        ".env",
+        ".env.example",
+        ".gitignore",
+        "data/kb-sync/.gitkeep",
+        "data/models/.gitkeep",
+        "packs/.gitkeep",
+        ".specify/memory/constitution.md",
+        "sync/tests/fixtures/eval.example.yaml"
+      ],
+      "wave": "T001-T007"
+    },
+    "T003": {
+      "status": "DONE",
+      "did": "Restored .env/.env.example identity, ignore rules and skeleton, constitution v1.1.1, eval-set format",
+      "files": [
+        ".env",
+        ".env.example",
+        ".gitignore",
+        "data/kb-sync/.gitkeep",
+        "data/models/.gitkeep",
+        "packs/.gitkeep",
+        ".specify/memory/constitution.md",
+        "sync/tests/fixtures/eval.example.yaml"
+      ],
+      "wave": "T001-T007"
+    },
+    "T007": {
+      "status": "DONE",
+      "did": "Restored .env/.env.example identity, ignore rules and skeleton, constitution v1.1.1, eval-set format",
+      "files": [
+        ".env",
+        ".env.example",
+        ".gitignore",
+        "data/kb-sync/.gitkeep",
+        "data/models/.gitkeep",
+        "packs/.gitkeep",
+        ".specify/memory/constitution.md",
+        "sync/tests/fixtures/eval.example.yaml"
+      ],
+      "wave": "T001-T007"
+    },
+    "T008": {
+      "status": "DONE",
+      "did": "Added BACKUP_RETENTION and KB_SYNC_* keys, byte-identical, own-line comments",
+      "files": [
+        ".env",
+        ".env.example"
+      ]
+    },
+    "T010": {
+      "status": "DONE",
+      "did": "kb-sync service behind the kb-sync profile; no rag_storage or backups mount",
+      "files": [
+        "compose.yaml",
+        "sync/no-research/.gitkeep"
+      ]
+    }
+  }
 }

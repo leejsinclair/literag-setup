@@ -1,0 +1,17 @@
+# FR-025 test-set format. Copy to data/kb-sync/eval.yaml (gitignored) and write about 20
+# questions the corpus answers plus 3 to 5 it cannot.
+#
+#   id              unique short name
+#   question        asked exactly as written
+#   in_corpus       false for questions the knowledge base should refuse
+#   expected_source <source>:<source_id> of the item holding the answer (in_corpus only)
+#   evidence        a phrase that must appear in a surviving passage (in_corpus only)
+questions:
+  - id: dora-metrics
+    question: What are the four key metrics described in Accelerate?
+    in_corpus: true
+    expected_source: drive:EXAMPLE_FILE_ID
+    evidence: deployment frequency
+  - id: out-of-corpus-weather
+    question: What was the weather in Lisbon on 3 March 1998?
+    in_corpus: false

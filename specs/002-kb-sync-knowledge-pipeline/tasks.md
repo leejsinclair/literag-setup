@@ -25,19 +25,19 @@ Files: `.env`, `.env.example`, `.gitignore`, `data/kb-sync/.gitkeep`, `data/mode
 
 **Wave 1 — independent (different files):**
 
-- [ ] **T001** [P] Restore byte identity between `.env` and `.env.example` (they differ at line 97). Move the trailing comment on the commented-out `LLM_BINDING_API_KEY` line onto its own line. Verify with `diff` · .env, .env.example
-- [ ] **T002** [P] Ignore `data/kb-sync/*`, `data/models/*`, `packs/*` and `secrets/`, each data directory keeping a `!…/.gitkeep`, and create the three `.gitkeep` files · .gitignore, data/kb-sync/.gitkeep, data/models/.gitkeep, packs/.gitkeep
-- [ ] **T003** [P] Constitution **v1.1.1 PATCH** (must land before Phase 8, Story 6). This builds on v1.1.0, which already satisfies FR-001 (commits d82ce62, 66f71d6). Add a "Public web" row to Recorded Cloud Dependencies: review checks fetch only URLs the owner listed in a pack, and send no knowledge-base content. Extend the Claude row: with the opt-in `--web` flag, the topic name goes to Claude's web search (FR-030). Update the Sync Impact Report, version and Last Amended date · .specify/memory/constitution.md
-- [ ] **T007** [P] [US2] Commit the eval-set format: entries with `id`, `question`, `in_corpus`, `expected_source` (`<source>:<source_id>`) and `evidence` (a phrase the answer's passages must contain). Include 2 example entries built on public facts · sync/tests/fixtures/eval.example.yaml
+- [x] **T001** [P] Restore byte identity between `.env` and `.env.example` (they differ at line 97). Move the trailing comment on the commented-out `LLM_BINDING_API_KEY` line onto its own line. Verify with `diff` · .env, .env.example
+- [x] **T002** [P] Ignore `data/kb-sync/*`, `data/models/*`, `packs/*` and `secrets/`, each data directory keeping a `!…/.gitkeep`, and create the three `.gitkeep` files · .gitignore, data/kb-sync/.gitkeep, data/models/.gitkeep, packs/.gitkeep
+- [x] **T003** [P] Constitution **v1.1.1 PATCH** (must land before Phase 8, Story 6). This builds on v1.1.0, which already satisfies FR-001 (commits d82ce62, 66f71d6). Add a "Public web" row to Recorded Cloud Dependencies: review checks fetch only URLs the owner listed in a pack, and send no knowledge-base content. Extend the Claude row: with the opt-in `--web` flag, the topic name goes to Claude's web search (FR-030). Update the Sync Impact Report, version and Last Amended date · .specify/memory/constitution.md
+- [x] **T007** [P] [US2] Commit the eval-set format: entries with `id`, `question`, `in_corpus`, `expected_source` (`<source>:<source_id>`) and `evidence` (a phrase the answer's passages must contain). Include 2 example entries built on public facts · sync/tests/fixtures/eval.example.yaml
 
 **⟶ Wait for Wave 1 to finish, then:**
 
-- [ ] **T008** Add the `KB_SYNC_*` keys from contracts/kb-cli.md → Configuration keys (the reranker keys come later, in T098). Add `BACKUP_RETENTION=14` in the script-only section and a commented `KB_SYNC_NOTEBOOKLM_SCOPE` (the owner fills it in `.env` after T076). Keep the two files byte-identical, with every comment on its own line · .env, .env.example
+- [x] **T008** Add the `KB_SYNC_*` keys from contracts/kb-cli.md → Configuration keys (the reranker keys come later, in T098). Add `BACKUP_RETENTION=14` in the script-only section and a commented `KB_SYNC_NOTEBOOKLM_SCOPE` (the owner fills it in `.env` after T076). Keep the two files byte-identical, with every comment on its own line · .env, .env.example
 - [ ] **T009** [P] [US2] **Owner** Write the FR-025 test set: about 20 Leadership-folder questions with known answers, plus 3 to 5 questions the corpus cannot answer. Follow the T007 format. This must be done before T051 measures the filters (SC-007) · data/kb-sync/eval.yaml
 
 **⟶ Wait for T008, then:**
 
-- [ ] **T010** Add the `kb-sync` service: profile `kb-sync`, `build: ./sync`, `network_mode: host`, user `1000:1000`. Mounts: `./.env:/app/.env:ro`, `./data/inputs`, `./data/kb-sync`, `./packs`, `./secrets`, and `${KB_SYNC_RESEARCH_DIR}` read-only (defaulting to an empty dir). No `data/rag_storage` and no `data/backups` (Invariant 4). No `environment:` block. Give it a rationale header comment in the file's existing style (FR-003) · compose.yaml
+- [x] **T010** Add the `kb-sync` service: profile `kb-sync`, `build: ./sync`, `network_mode: host`, user `1000:1000`. Mounts: `./.env:/app/.env:ro`, `./data/inputs`, `./data/kb-sync`, `./packs`, `./secrets`, and `${KB_SYNC_RESEARCH_DIR}` read-only (defaulting to an empty dir). No `data/rag_storage` and no `data/backups` (Invariant 4). No `environment:` block. Give it a rationale header comment in the file's existing style (FR-003) · compose.yaml
 
 ---
 

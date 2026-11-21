@@ -1,7 +1,18 @@
 <!--
 Sync Impact Report
 ==================
-Version change: 1.0.0 → 1.1.0
+Version change: 1.1.0 → 1.1.1
+Rationale: PATCH. Clarifies Principle III's Recorded Cloud Dependencies for two outbound
+flows spec 002 already requires (FR-028 review web checks, FR-030 opt-in web search).
+Neither sends knowledge-base content. No principle changes meaning.
+
+Modified principles:
+  - III. Local-First: adds a "Public web" row; the Claude API row also records the topic
+    name sent by the opt-in `review --web` search.
+
+Templates / files requiring review: none (README updated in spec 002 task T091).
+
+Previous change, 1.0.0 → 1.1.0:
 Rationale: MINOR. Materially expanded guidance for feature 002 (kb-sync knowledge
 pipeline, specs/002-kb-sync-knowledge-pipeline/ FR-001). No principle removed; Principle X
 is narrowed from "out of scope" to "in scope under stated limits", which widens what is
@@ -78,7 +89,8 @@ be able to skip any command that sends content out without losing local function
 | Google Drive | The owner's documents live there; syncing chosen folders is the requirement (spec 002 FR-006). | Read only (`drive.readonly`), narrowed to the configured folder allow-list by the sync tool. Nothing is written to Drive. |
 | AppFlowy Cloud | The owner's notes live in the hosted service (spec 002 FR-015). | Read only: page tree and page content of the chosen workspace. |
 | NotebookLM (consumer API) | Research packs are pushed to a notebook for report, podcast, and infographic generation, which has no local equivalent (spec 002 FR-027). | The items in a pack the owner builds and pushes. Never the whole store. |
-| Claude API | The owner's chosen writer of cited answers from retrieved passages (spec 002 FR-019). | The question and the passages that survive the local filter. `--local` sends nothing. |
+| Claude API | The owner's chosen writer of cited answers from retrieved passages (spec 002 FR-019), and the optional web search for review candidates (FR-030). | The question and the passages that survive the local filter. `--local` sends nothing. With the opt-in `review --web` flag, the topic name only (added 1.1.1). |
+| Public web | Reviews check that web sources the owner listed in a pack still resolve (spec 002 FR-028). | Requests to URLs the owner listed. No knowledge-base content is sent (added 1.1.1). |
 
 **Rationale**: The value of a personal knowledge base depends on the owner retaining full
 custody of their data and not leaking it to third parties by default. Where a cloud
@@ -226,4 +238,4 @@ constitution wins.
 - **Runtime guidance**: Agent- and contributor-facing operational guidance lives in the
   repository README and Spec Kit templates, which defer to this constitution.
 
-**Version**: 1.1.0 | **Ratified**: 2026-08-30 | **Last Amended**: 2026-11-21
+**Version**: 1.1.1 | **Ratified**: 2026-08-30 | **Last Amended**: 2026-11-21
